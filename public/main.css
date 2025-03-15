@@ -53,3 +53,47 @@ button:hover {
 .plat.compatible { border-left: 5px solid #28a745; }
 .plat.modifiable { border-left: 5px solid #ffae42; }
 .plat.incompatible { border-left: 5px solid #dc3545; }
+
+/* Pour Mobile */
+@media (max-width: 600px) {
+    body {
+        padding: 10px;
+    }
+
+    .wrapper, .container {
+        width: 100%;
+        padding: 10px;
+        box-shadow: none;
+    }
+
+    h1 {
+        font-size: 22px;
+    }
+
+    input[type="text"], button {
+        width: 100%;
+    }
+
+    input[type="text"] {
+        font-size: 14px;
+    }
+
+    button {
+        font-size: 16px;
+        padding: 12px;
+    }
+
+    .plat {
+        padding: 10px;
+        margin: 10px 0;
+    }
+
+    .plat h3 {
+        font-size: 16px;
+    }
+
+    .plat p {
+        font-size: 13px;
+    }
+}
+
