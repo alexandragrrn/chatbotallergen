@@ -1,91 +1,43 @@
 [
     {
-        "categorie": "Planche a partager",
+        "categorie": "Planche à partager",
         "nom": "Jura4ever",
         "description": "Notre best seller !",
         "ingredients": [
-            {
-                "nom": "Charcuterie,",
-                "modifiable": false
-            },
-            {
-                "nom": "salade,",
-                "modifiable": false
-            },
-            {
-                "nom": "noix,",
-                "modifiable": false
-            },
-            {
-                "nom": "dés",
-                "modifiable": false
-            },
-            {
-                "nom": "de",
-                "modifiable": false
-            },
-            {
-                "nom": "comtés",
-                "modifiable": false
-            }
+            { "nom": "Charcuterie", "modifiable": false },
+            { "nom": "Salade", "modifiable": false },
+            { "nom": "Noix", "modifiable": false },
+            { "nom": "Dés de Comté", "modifiable": false }
         ],
-        "allergenes": [
-            "Charcuterie: sulfite",
-            "salade: œuf",
-            "lait",
-            "Noix: arachide"
-        ]
+        "allergenes": ["sulfite", "œuf", "lait", "arachide"]
     },
     {
         "categorie": "Entrée",
         "nom": "Salade jurassienne",
         "description": "Une salade typique du Jura",
         "ingredients": [
-            {
-                "nom": "Salade,",
-                "modifiable": false
-            },
-            {
-                "nom": "noix,",
-                "modifiable": false
-            },
-            {
-                "nom": "comté,",
-                "modifiable": false
-            }
+            { "nom": "Salade", "modifiable": false },
+            { "nom": "Noix", "modifiable": false },
+            { "nom": "Comté", "modifiable": false }
         ],
-        "allergenes": [
-            "Noix: Fruits à coque",
-            "Salade : Lait"
-        ]
+        "allergenes": ["fruits à coque", "lait"]
     },
     {
         "categorie": "Viande",
         "nom": "Poulet au vin jaune",
         "description": "Spécialité à base de vin jaune",
         "ingredients": [
-            {
-                "nom": "Poulet,",
-                "modifiable": false
-            }
+            { "nom": "Poulet", "modifiable": false }
         ],
-        "allergenes": [
-            "Crème: Lait"
-        ],
+        "allergenes": ["lait"],
         "accompagnements": [
             {
-                "nom": "Frites,",
-                "allergenes": [
-                    "Frites:",
-                    "gluten"
-                ]
+                "nom": "Frites",
+                "allergenes": ["gluten"]
             },
             {
                 "nom": "Légumes",
-                "allergenes": [
-                    "Légumes:",
-                    "non"
-                ]
+                "allergenes": []
             }
         ]
     },
@@ -94,27 +46,9 @@
         "nom": "Crêpe pâte à tartiner",
         "description": "Délicieuse crêpe chocolatée",
         "ingredients": [
-            {
-                "nom": "Crêpe,",
-                "modifiable": false
-            },
-            {
-                "nom": "pâte",
-                "modifiable": false
-            },
-            {
-                "nom": "à",
-                "modifiable": false
-            },
-            {
-                "nom": "tartiner",
-                "modifiable": false
-            }
+            { "nom": "Crêpe", "modifiable": false },
+            { "nom": "Pâte à tartiner", "modifiable": false }
         ],
-        "allergenes": [
-            "Crêpe: Gluten",
-            "Lait",
-            "Pâte a tartiner: Fruits à coque"
-        ]
+        "allergenes": ["gluten", "lait", "fruits à coque"]
     }
 ]
