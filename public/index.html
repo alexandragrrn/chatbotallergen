@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Chatbot Allergènes - Restaurant Le Pic Vert</title>
+    <link rel="stylesheet" href="/main.css?v=1">
+</head>
+<body>
+    <div class="wrapper">
+        <div class="container">
+            <h1>Bienvenue au Restaurant Le Pic Vert</h1>
+            <p>Indiquez vos allergies pour découvrir les plats adaptés :</p>
+            <input type="text" id="allergyInput" placeholder="Ex : gluten, lait, œufs">
+            <button onclick="searchPlats()">Rechercher</button>
+            <div id="results"></div>
+        </div>
+    </div>
+
+    <script>
+        function searchPlats() {
+            const allergies = document.getElementById('allergyInput').value.split(',').map(a => a.trim().toLowerCase());
+
+            fetch('/rechercher', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ allergies })
+            })
+            .then(response => response.json())
+            .then(data => {
+                let output = '<h2>Résultats :</h2>';
+                data.forEach(plat => {
+                    let color = plat.status === 'compatible' ? 'green' : plat.status === 'modifiable' ? 'orange' : 'red';
+                    output += `<div class="plat ${plat.status}" style="border-left: 5px solid ${color};">
+                        <h3>${plat.nom}</h3>
+                        <p>${plat.description}</p>
+                        <p><strong>Allergènes :</strong> ${plat.allergenes.join(', ')}</p>
+                        <p><strong>Statut :</strong> <span style="color: ${color};">${plat.status}</span></p>
+                    </div>`;
+                });
+                document.getElementById('results').innerHTML = output;
+            })
+            .catch(error => console.error('Erreur:', error));
+        }
+    </script>
+</body>
+</html>
