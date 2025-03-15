@@ -1,7 +1,120 @@
 [
-  {
-    "nom": "Salade Jurassienne",
-    "description": "Salade avec Comté, noix et jambon fumé.",
-    "allergenes": ["lait", "fruits à coque"]
-  }
+    {
+        "categorie": "Planche a partager",
+        "nom": "Jura4ever",
+        "description": "Notre best seller !",
+        "ingredients": [
+            {
+                "nom": "Charcuterie,",
+                "modifiable": false
+            },
+            {
+                "nom": "salade,",
+                "modifiable": false
+            },
+            {
+                "nom": "noix,",
+                "modifiable": false
+            },
+            {
+                "nom": "dés",
+                "modifiable": false
+            },
+            {
+                "nom": "de",
+                "modifiable": false
+            },
+            {
+                "nom": "comtés",
+                "modifiable": false
+            }
+        ],
+        "allergenes": [
+            "Charcuterie: sulfite",
+            "salade: œuf",
+            "lait",
+            "Noix: arachide"
+        ]
+    },
+    {
+        "categorie": "Entrée",
+        "nom": "Salade jurassienne",
+        "description": "Une salade typique du Jura",
+        "ingredients": [
+            {
+                "nom": "Salade,",
+                "modifiable": false
+            },
+            {
+                "nom": "noix,",
+                "modifiable": false
+            },
+            {
+                "nom": "comté,",
+                "modifiable": false
+            }
+        ],
+        "allergenes": [
+            "Noix: Fruits à coque",
+            "Salade : Lait"
+        ]
+    },
+    {
+        "categorie": "Viande",
+        "nom": "Poulet au vin jaune",
+        "description": "Spécialité à base de vin jaune",
+        "ingredients": [
+            {
+                "nom": "Poulet,",
+                "modifiable": false
+            }
+        ],
+        "allergenes": [
+            "Crème: Lait"
+        ],
+        "accompagnements": [
+            {
+                "nom": "Frites,",
+                "allergenes": [
+                    "Frites:",
+                    "gluten"
+                ]
+            },
+            {
+                "nom": "Légumes",
+                "allergenes": [
+                    "Légumes:",
+                    "non"
+                ]
+            }
+        ]
+    },
+    {
+        "categorie": "Dessert",
+        "nom": "Crêpe pâte à tartiner",
+        "description": "Délicieuse crêpe chocolatée",
+        "ingredients": [
+            {
+                "nom": "Crêpe,",
+                "modifiable": false
+            },
+            {
+                "nom": "pâte",
+                "modifiable": false
+            },
+            {
+                "nom": "à",
+                "modifiable": false
+            },
+            {
+                "nom": "tartiner",
+                "modifiable": false
+            }
+        ],
+        "allergenes": [
+            "Crêpe: Gluten",
+            "Lait",
+            "Pâte a tartiner: Fruits à coque"
+        ]
+    }
 ]
