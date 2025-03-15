@@ -36,4 +36,11 @@
   {
     "categorie": "Dessert",
     "nom": "Crêpe pâte à tartiner",
-    "description": "
+    "description": "Délicieuse crêpe chocolatée",
+    "ingredients": [
+      {"nom": "Crêpe", "modifiable": false},
+      {"nom": "Pâte à tartiner", "modifiable": false}
+    ],
+    "allergenes": ["gluten", "lait", "fruits à coque"]
+  }
+]
