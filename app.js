@@ -20,6 +20,7 @@ app.post('/rechercher', (req, res) => {
     if (!allergies || !Array.isArray(allergies)) {
         return res.status(400).json({ erreur: "Allergies mal envoyées depuis le client." });
     }
+module.exports = app;
 
     try {
         const resultats = plats.map(plat => {
