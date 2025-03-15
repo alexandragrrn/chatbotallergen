@@ -1,54 +1,39 @@
 [
-    {
-        "categorie": "Planche à partager",
-        "nom": "Jura4ever",
-        "description": "Notre best seller !",
-        "ingredients": [
-            { "nom": "Charcuterie", "modifiable": false },
-            { "nom": "Salade", "modifiable": false },
-            { "nom": "Noix", "modifiable": false },
-            { "nom": "Dés de Comté", "modifiable": false }
-        ],
-        "allergenes": ["sulfite", "œuf", "lait", "arachide"]
-    },
-    {
-        "categorie": "Entrée",
-        "nom": "Salade jurassienne",
-        "description": "Une salade typique du Jura",
-        "ingredients": [
-            { "nom": "Salade", "modifiable": false },
-            { "nom": "Noix", "modifiable": false },
-            { "nom": "Comté", "modifiable": false }
-        ],
-        "allergenes": ["fruits à coque", "lait"]
-    },
-    {
-        "categorie": "Viande",
-        "nom": "Poulet au vin jaune",
-        "description": "Spécialité à base de vin jaune",
-        "ingredients": [
-            { "nom": "Poulet", "modifiable": false }
-        ],
-        "allergenes": ["lait"],
-        "accompagnements": [
-            {
-                "nom": "Frites",
-                "allergenes": ["gluten"]
-            },
-            {
-                "nom": "Légumes",
-                "allergenes": []
-            }
-        ]
-    },
-    {
-        "categorie": "Dessert",
-        "nom": "Crêpe pâte à tartiner",
-        "description": "Délicieuse crêpe chocolatée",
-        "ingredients": [
-            { "nom": "Crêpe", "modifiable": false },
-            { "nom": "Pâte à tartiner", "modifiable": false }
-        ],
-        "allergenes": ["gluten", "lait", "fruits à coque"]
-    }
-]
+  {
+    "categorie": "Planche à partager",
+    "nom": "Jura4ever",
+    "description": "Notre best seller !",
+    "ingredients": [
+      {"nom": "Charcuterie", "modifiable": false},
+      {"nom": "Salade", "modifiable": false},
+      {"nom": "Noix", "modifiable": false},
+      {"nom": "Dés de Comté", "modifiable": false}
+    ],
+    "allergenes": ["sulfite", "œuf", "lait", "arachide"]
+  },
+  {
+    "categorie": "Entrée",
+    "nom": "Salade jurassienne",
+    "description": "Une salade typique du Jura",
+    "ingredients": [
+      {"nom": "Salade", "modifiable": false},
+      {"nom": "Noix", "modifiable": false},
+      {"nom": "Comté", "modifiable": false}
+    ],
+    "allergenes": ["fruits à coque", "lait"]
+  },
+  {
+    "categorie": "Viande",
+    "nom": "Poulet au vin jaune",
+    "description": "Spécialité à base de vin jaune",
+    "ingredients": [{"nom": "Poulet", "modifiable": false}],
+    "allergenes": ["lait"],
+    "accompagnements": [
+      {"nom": "Frites", "allergenes": ["gluten"]},
+      {"nom": "Légumes", "allergenes": []}
+    ]
+  },
+  {
+    "categorie": "Dessert",
+    "nom": "Crêpe pâte à tartiner",
+    "description": "
