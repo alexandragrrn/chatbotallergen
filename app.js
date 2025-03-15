@@ -1,23 +1,42 @@
-const express = require('express');
-const app = express();
-const plats = require('./data/plats.json');
-
-app.use(express.json());
-
 app.post('/rechercher', (req, res) => {
-    const allergies = req.body.allergies;
-    const results = plats.map(plat => {
-        let allergenesLower = plat.allergenes.map(a => a.toLowerCase());
-        let incompatible = allergies.some(allergie => allergenesLower.includes(allergie));
+    const { allergies } = req.body;
+    const plats = require('./data/plats.json');
+
+    const resultats = plats.map(plat => {
+        let allergenesTotaux = plat.allergenes;
+
+        // Ajouter les allergènes des accompagnements si existants
+        if (plat.accompagnements) {
+            plat.accompagnements.forEach(acc => {
+                allergenesTotaux = allergenesTotaux.concat(acc.allergenes);
+            });
+        }
+
+        const platAllergenes = new Set([...plat.allergenes, ...(allergenesTotaux || [])]);
+        const intersection = allergies.filter(a => platAllergeneExiste(platAllergenes, a));
+
+        let status = intersection.length === 0 ? 'compatible' : 'incompatible';
 
         return {
             nom: plat.nom,
             description: plat.description,
-            allergenes: plat.allergenes,
-            status: incompatible ? 'incompatible' : 'compatible'
+            allergenes: Array.from(platAllergenes),
+            status
         };
     });
-    res.json(results);
+
+    res.json(resultats);
 });
 
-app.listen(process.env.PORT || 3000);
+// Vérifie les allergènes avec prise en compte orthographe, pluriel, majuscule
+function platAllergeneExiste(allergenesPlat, allergieClient) {
+    allergieClient = allergieClient.toLowerCase().trim();
+    for (let allergene of allergenesPlat) {
+        allergene = allergene.toLowerCase().trim();
+        if (allergene.includes(allergieClient) || allergieClient.includes(allergene)) {
+            return true;
+        }
+    }
+    return false;
+}
+
