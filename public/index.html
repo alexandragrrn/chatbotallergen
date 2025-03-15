@@ -20,31 +20,40 @@
     </div>
 
     <script>
-        function searchPlats() {
-            const allergies = document.getElementById('allergyInput').value.split(',').map(a => a.trim().toLowerCase());
+function searchPlats() {
+    const allergies = document.getElementById('allergyInput').value.split(',').map(a => a.trim().toLowerCase());
 
-            fetch('/rechercher', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ allergies })
-            })
-            .then(response => response.json())
-            .then(data => {
-                let output = '<h2>Résultats :</h2>';
-                data.forEach(plat => {
-                    let color = plat.status === 'compatible' ? 'green' : plat.status === 'modifiable' ? 'orange' : 'red';
-                    output += `<div class="plat" style="border-left: 5px solid ${color};">
-                        <h3>${plat.nom}</h3>
-                        <p>${plat.description}</p>
-                        <p><strong>Allergènes :</strong> ${plat.allergenes.join(', ')}</p>
-                        <p><strong>Statut :</strong> <span style="color: ${color};">${plat.status}</span></p>
-                    </div>`;
-                });
-                document.getElementById('results').innerHTML = output;
-            })
-            .catch(error => console.error('Erreur:', error));
+    fetch('/rechercher', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ allergies })
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`Erreur HTTP! status: ${response.status}`);
         }
-    </script>
+        return response.json();
+    })
+    .then(data => {
+        let output = '<h2>Résultats :</h2>';
+        data.forEach(plat => {
+            let color = plat.status === 'compatible' ? 'green' : 'red';
+            output += `<div class="plat" style="border-left: 5px solid ${color};">
+                <h3>${plat.nom}</h3>
+                <p>${plat.description}</p>
+                <p><strong>Allergènes :</strong> ${plat.allergenes.join(', ')}</p>
+                <p><strong>Statut :</strong> <span style="color: ${color};">${plat.status}</span></p>
+            </div>`;
+        });
+        document.getElementById('results').innerHTML = output;
+    })
+    .catch(error => {
+        console.error('Erreur:', error);
+        document.getElementById('results').innerHTML = '<p>Erreur lors de la recherche. Veuillez réessayer.</p>';
+    });
+}
+</script>
+
 </body>
 </html>
 
