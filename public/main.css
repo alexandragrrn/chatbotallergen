@@ -108,8 +108,15 @@ button:hover {
     }
 
     .container {
-        padding: 15px;
-        border-radius: 8px;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: none;
+    width: 95%;             /* ← Ajoute cette ligne */
+    max-width: 95%;         /* ← Ajoute aussi cette ligne */
+    margin: 10px auto;      /* ← Centrer le tout parfaitement */
+    box-sizing: border-box; /* ← Important pour éviter les débordements */
+}
+
     }
 
     h1 {
