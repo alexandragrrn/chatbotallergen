@@ -10,7 +10,11 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.post('/rechercher', (req, res) => {
     try {
-        const allergies = req.body.allergies.map(a => a.trim().toLowerCase());
+        const allergies = req.body.allergies;
+
+        if (!allergies) {
+            return res.status(400).json({ error: "Aucune allergie fournie." });
+        }
 
         const resultats = plats.map(plat => {
             let allergenesTotaux = [...plat.allergenes];
@@ -38,9 +42,13 @@ app.post('/rechercher', (req, res) => {
 
         res.json(resultats);
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        res.status(500).send(`Erreur serveur : ${error.message}`);
     }
 });
 
-app.listen(process.env.PORT || 3000);
+// Route GET temporaire pour débuguer :
+app.get('/rechercher', (req, res) => {
+    res.send('La route fonctionne, mais uniquement en POST !');
+});
 
+app.listen(process.env.PORT || 3000);
