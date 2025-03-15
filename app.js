@@ -1,42 +1,39 @@
+const express = require('express');
+const app = express();
+const plats = require('./data/plats.json');
+const path = require('path');
+
+app.use(express.json());
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Route pour la recherche
 app.post('/rechercher', (req, res) => {
-    const { allergies } = req.body;
-    const plats = require('./data/plats.json');
-
+    const allergies = req.body.allergies;
+    
     const resultats = plats.map(plat => {
-        let allergenesTotaux = plat.allergenes;
+        let allergenesTotaux = [...plat.allergenes];
 
-        // Ajouter les allergènes des accompagnements si existants
         if (plat.accompagnements) {
-            plat.accompagnements.forEach(acc => {
-                allergenesTotaux = allergenesTotaux.concat(acc.allergenes);
+            plat.accompagnements.forEach(accompagnement => {
+                allergenesTotaux = allergenesTotaux.concat(accompagnement.allergenes);
             });
         }
 
-        const platAllergenes = new Set([...plat.allergenes, ...(allergenesTotaux || [])]);
-        const intersection = allergies.filter(a => platAllergeneExiste(platAllergenes, a));
-
-        let status = intersection.length === 0 ? 'compatible' : 'incompatible';
+        let statut = "compatible";
+        if (allergies.some(a => allergenesTotaux.some(all => all.toLowerCase().includes(a.toLowerCase())))) {
+            statut = "incompatible";
+        }
 
         return {
             nom: plat.nom,
             description: plat.description,
-            allergenes: Array.from(platAllergenes),
-            status
+            allergenes: allergenesTotaux,
+            status: statut
         };
     });
 
     res.json(resultats);
 });
 
-// Vérifie les allergènes avec prise en compte orthographe, pluriel, majuscule
-function platAllergeneExiste(allergenesPlat, allergieClient) {
-    allergieClient = allergieClient.toLowerCase().trim();
-    for (let allergene of allergenesPlat) {
-        allergene = allergene.toLowerCase().trim();
-        if (allergene.includes(allergieClient) || allergieClient.includes(allergene)) {
-            return true;
-        }
-    }
-    return false;
-}
-
+// Serveur (uniquement local pour test rapide, Vercel adaptera automatiquement)
+app.listen(3000, () => console.log('Serveur lancé'));
