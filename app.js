@@ -23,7 +23,7 @@ app.post('/rechercher', (req, res) => {
 
             let status = "compatible";
             if (allergies.some(allergie =>
-                allergenesTotaux.some(all => all.toLowerCase().includes(allergie.toLowerCase()))
+                allergenesTotaux.some(all => all.toLowerCase().includes(allergie))
             )) {
                 status = "incompatible";
             }
