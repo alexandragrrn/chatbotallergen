@@ -96,4 +96,56 @@ button:hover {
         font-size: 13px;
     }
 }
+@media (max-width: 600px) {
+    body {
+        background-color: #f9f9f9;
+        padding: 10px;
+        font-size: 14px;
+    }
+
+    .wrapper {
+        padding: 5px;
+    }
+
+    .container {
+        padding: 15px;
+        border-radius: 8px;
+    }
+
+    h1 {
+        font-size: 20px;
+        margin-bottom: 15px;
+    }
+
+    input[type="text"], button {
+        width: 100%;
+        font-size: 16px;
+        margin: 8px 0;
+    }
+
+    button {
+        padding: 12px;
+        border-radius: 8px;
+    }
+
+    .plat {
+        padding: 10px;
+        margin-top: 15px;
+        border-radius: 8px;
+        font-size: 14px;
+        text-align: left;
+    }
+
+    #results h2 {
+        font-size: 20px;
+        margin-top: 20px;
+    }
+    
+    img.logo {
+        width: 150px;
+        margin: 0 auto 15px auto;
+        display: block;
+    }
+}
+
 
