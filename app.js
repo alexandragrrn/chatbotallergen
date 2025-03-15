@@ -2,18 +2,24 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const app = express();
-const plats = require('./data/plats.json');
 
 app.use(express.json());
 app.use(cors());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.post('/rechercher', (req, res) => {
+    let plats;
+    try {
+        plats = require('./data/plats.json');
+    } catch (error) {
+        return res.status(500).json({ erreur: "Erreur chargement JSON : " + error.message });
+    }
+
     try {
         const allergies = req.body.allergies;
 
         if (!allergies) {
-            return res.status(400).json({ error: "Aucune allergie fournie." });
+            return res.status(400).json({ erreur: "Aucune allergie fournie." });
         }
 
         const resultats = plats.map(plat => {
@@ -42,13 +48,13 @@ app.post('/rechercher', (req, res) => {
 
         res.json(resultats);
     } catch (error) {
-        res.status(500).send(`Erreur serveur : ${error.message}`);
+        res.status(500).json({ erreur: "Erreur lors du traitement : " + error.message });
     }
 });
 
-// Route GET temporaire pour débuguer :
+// Route GET temporaire pour vérifier la connexion
 app.get('/rechercher', (req, res) => {
-    res.send('La route fonctionne, mais uniquement en POST !');
+    res.send("✅ Route accessible en POST uniquement.");
 });
 
 app.listen(process.env.PORT || 3000);
