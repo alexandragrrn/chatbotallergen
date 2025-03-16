@@ -83,13 +83,15 @@ app.post('/rechercher', (req, res) => {
             // Récupérer tous les allergènes du plat principal
             let allergenesTotaux = [...plat.allergenes];
             
-            // Extraire les noms d'ingrédients
-            let ingredientsTotaux = plat.ingredients.map(ing => ing.nom);
-            
             // Statut initial du plat et de ses accompagnements
             let statutPlat = "compatible";
             let accompagnementsCompatibles = [];
             let accompagnementsIncompatibles = [];
+            
+            // Pour stocker les ingrédients problématiques
+            let ingredientsProblematiques = [];
+            let ingredientsModifiables = [];
+            let ingredientsNonModifiables = [];
             
             // Vérifier les accompagnements si disponibles
             if (plat.accompagnements) {
@@ -97,7 +99,7 @@ app.post('/rechercher', (req, res) => {
                     let accStatus = "compatible";
                     const accAllergenes = acc.allergenes || [];
                     
-                    // Vérifier si l'accompagnement contient des allergènes ou ingrédients recherchés
+                    // Vérifier si l'accompagnement contient des allergènes recherchés
                     for (const terme of recherche) {
                         // Vérifier allergènes de l'accompagnement
                         if (accAllergenes.some(all => normaliserEtComparer(all, terme))) {
@@ -114,25 +116,39 @@ app.post('/rechercher', (req, res) => {
                 });
             }
             
-            // Vérifier le plat principal pour allergènes et ingrédients
+            // Vérifier le plat principal pour allergènes
             for (const terme of recherche) {
                 // Vérifier les allergènes du plat
                 if (allergenesTotaux.some(all => normaliserEtComparer(all, terme))) {
                     statutPlat = "incompatible";
-                    break;
+                    // Ne pas sortir immédiatement pour pouvoir identifier tous les allergènes problématiques
                 }
                 
-                // CORRECTION: Vérifier spécifiquement chaque ingrédient
-                for (const ingredient of ingredientsTotaux) {
-                    // Vérification plus stricte pour les ingrédients comme "noix"
-                    if (normaliserEtComparer(ingredient, terme)) {
-                        statutPlat = "incompatible";
-                        break;
+                // Vérifier spécifiquement chaque ingrédient
+                for (const ingredient of plat.ingredients) {
+                    if (normaliserEtComparer(ingredient.nom, terme)) {
+                        // Si l'ingrédient est modifiable, on l'ajoute à la liste des ingrédients modifiables
+                        if (ingredient.modifiable) {
+                            ingredientsModifiables.push(ingredient.nom);
+                        } else {
+                            ingredientsNonModifiables.push(ingredient.nom);
+                        }
+                        ingredientsProblematiques.push(ingredient.nom);
                     }
                 }
-                
-                if (statutPlat === "incompatible") break;
             }
+            
+            // Déterminer le statut final du plat
+            if (ingredientsProblematiques.length > 0) {
+                if (ingredientsNonModifiables.length > 0) {
+                    statutPlat = "incompatible"; // Plat incompatible s'il y a des ingrédients non modifiables
+                } else if (ingredientsModifiables.length > 0) {
+                    statutPlat = "modifiable"; // Plat modifiable si tous les ingrédients problématiques sont modifiables
+                }
+            }
+            
+            // Extraire les noms d'ingrédients pour l'affichage
+            let ingredientsTotaux = plat.ingredients.map(ing => ing.nom);
             
             // Créer le résultat pour ce plat
             const resultatPlat = {
@@ -140,7 +156,9 @@ app.post('/rechercher', (req, res) => {
                 description: plat.description,
                 allergenes: allergenesTotaux,
                 ingredients: ingredientsTotaux,
-                status: statutPlat
+                status: statutPlat,
+                ingredientsModifiables: ingredientsModifiables,
+                ingredientsNonModifiables: ingredientsNonModifiables
             };
             
             // Ajouter les informations d'accompagnements si disponibles
@@ -151,7 +169,7 @@ app.post('/rechercher', (req, res) => {
                 };
                 
                 // Si le plat est incompatible mais qu'il y a des accompagnements compatibles
-                if (statutPlat === "incompatible" && accompagnementsCompatibles.length > 0) {
+                if (statutPlat === "incompatible" && accompagnementsCompatibles.length > 0 && ingredientsNonModifiables.length === 0) {
                     resultatPlat.status = "modifiable";
                 }
             }
