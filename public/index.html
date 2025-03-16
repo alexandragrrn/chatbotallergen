@@ -12,7 +12,7 @@
             <img src="/logo.png" alt="Logo Pic Vert" width="120px">
             <h1>Bienvenue au Restaurant Le Pic Vert</h1>
             <p>Indiquez vos allergies ou ingrédients à éviter :</p>
-            <input type="text" id="allergyInput" placeholder="Ex : gluten, lait, oignon, fruits à coque">
+            <input type="text" id="allergyInput" placeholder="Ex : gluten, lait, oignon, noix">
             <button onclick="searchPlats()">Rechercher</button>
             <div id="results"></div>
         </div>
@@ -25,6 +25,9 @@
                 document.getElementById('results').innerHTML = '<p>Veuillez entrer au moins un terme de recherche.</p>';
                 return;
             }
+            
+            // Afficher un message de chargement
+            document.getElementById('results').innerHTML = '<p>Recherche en cours...</p>';
             
             fetch('/rechercher', {
                 method: 'POST',
@@ -41,43 +44,49 @@
                 if (categories.length === 0) {
                     output += '<p>Aucun résultat trouvé.</p>';
                 } else {
+                    // Vérification pour debug (à supprimer après test)
+                    console.log("Catégories trouvées:", categories);
+                    
                     categories.forEach(categorie => {
-                        output += `<h3 class="categorie">${categorie}</h3>`;
-                        
-                        data[categorie].forEach(plat => {
-                            let color = plat.status === 'compatible' ? 'green' : 
-                                       plat.status === 'modifiable' ? 'orange' : 'red';
+                        // Vérifier si la catégorie contient des plats à afficher
+                        if (data[categorie].length > 0) {
+                            output += `<h3 class="categorie">${categorie}</h3>`;
                             
-                            output += `<div class="plat" style="border-left: 5px solid ${color};">
-                                <h3>${plat.nom}</h3>
-                                <p>${plat.description}</p>
-                                <p><strong>Ingrédients :</strong> ${plat.ingredients.join(', ')}</p>
-                                <p><strong>Allergènes :</strong> ${plat.allergenes.join(', ')}</p>`;
-                            
-                            // Afficher les accompagnements si disponibles
-                            if (plat.accompagnements) {
-                                if (plat.accompagnements.compatibles.length > 0) {
-                                    output += `<p><strong>Accompagnements possibles :</strong> 
-                                        <span style="color: green">${plat.accompagnements.compatibles.join(', ')}</span></p>`;
+                            data[categorie].forEach(plat => {
+                                let color = plat.status === 'compatible' ? 'green' : 
+                                          plat.status === 'modifiable' ? 'orange' : 'red';
+                                
+                                output += `<div class="plat" style="border-left: 5px solid ${color};">
+                                    <h3>${plat.nom}</h3>
+                                    <p>${plat.description}</p>
+                                    <p><strong>Ingrédients :</strong> ${plat.ingredients.join(', ')}</p>
+                                    <p><strong>Allergènes :</strong> ${plat.allergenes.join(', ')}</p>`;
+                                
+                                // Afficher les accompagnements si disponibles
+                                if (plat.accompagnements) {
+                                    if (plat.accompagnements.compatibles.length > 0) {
+                                        output += `<p><strong>Accompagnements possibles :</strong> 
+                                            <span style="color: green">${plat.accompagnements.compatibles.join(', ')}</span></p>`;
+                                    }
+                                    if (plat.accompagnements.incompatibles.length > 0) {
+                                        output += `<p><strong>Accompagnements à éviter :</strong> 
+                                            <span style="color: red">${plat.accompagnements.incompatibles.join(', ')}</span></p>`;
+                                    }
                                 }
-                                if (plat.accompagnements.incompatibles.length > 0) {
-                                    output += `<p><strong>Accompagnements à éviter :</strong> 
-                                        <span style="color: red">${plat.accompagnements.incompatibles.join(', ')}</span></p>`;
+                                
+                                output += `<p><strong>Statut :</strong> <span style="color: ${color};">`;
+                                
+                                if (plat.status === 'compatible') {
+                                    output += 'Compatible avec vos restrictions';
+                                } else if (plat.status === 'modifiable') {
+                                    output += 'Compatible avec certains accompagnements';
+                                } else {
+                                    output += 'Incompatible avec vos restrictions';
                                 }
-                            }
-                            
-                            output += `<p><strong>Statut :</strong> <span style="color: ${color};">`;
-                            
-                            if (plat.status === 'compatible') {
-                                output += 'Compatible avec vos restrictions';
-                            } else if (plat.status === 'modifiable') {
-                                output += 'Compatible avec certains accompagnements';
-                            } else {
-                                output += 'Incompatible avec vos restrictions';
-                            }
-                            
-                            output += `</span></p></div>`;
-                        });
+                                
+                                output += `</span></p></div>`;
+                            });
+                        }
                     });
                 }
                 
