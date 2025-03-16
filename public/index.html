@@ -92,6 +92,18 @@
                                     <p><strong>Ingrédients :</strong> ${plat.ingredients.join(', ')}</p>
                                     <p><strong>Allergènes :</strong> ${plat.allergenes.join(', ')}</p>`;
                                 
+                                // Afficher les ingrédients modifiables si disponibles
+                                if (plat.ingredientsModifiables && plat.ingredientsModifiables.length > 0) {
+                                    output += `<p><strong>Ingrédients à retirer :</strong> 
+                                        <span style="color: orange">${plat.ingredientsModifiables.join(', ')}</span></p>`;
+                                }
+                                
+                                // Afficher les ingrédients non modifiables si disponibles
+                                if (plat.ingredientsNonModifiables && plat.ingredientsNonModifiables.length > 0) {
+                                    output += `<p><strong>Ingrédients problématiques non modifiables :</strong> 
+                                        <span style="color: red">${plat.ingredientsNonModifiables.join(', ')}</span></p>`;
+                                }
+                                
                                 // Afficher les accompagnements si disponibles
                                 if (plat.accompagnements) {
                                     if (plat.accompagnements.compatibles.length > 0) {
@@ -109,7 +121,7 @@
                                 if (plat.status === 'compatible') {
                                     output += 'Compatible avec vos restrictions';
                                 } else if (plat.status === 'modifiable') {
-                                    output += 'Compatible avec certains accompagnements';
+                                    output += 'Compatible en retirant certains ingrédients';
                                 } else {
                                     output += 'Incompatible avec vos restrictions';
                                 }
