@@ -80,8 +80,10 @@ app.post('/rechercher', (req, res) => {
         const resultatParCategorie = {};
         
         plats.forEach(plat => {
-            // Récupérer tous les allergènes du plat principal et des accompagnements
+            // Récupérer tous les allergènes du plat principal
             let allergenesTotaux = [...plat.allergenes];
+            
+            // Extraire les noms d'ingrédients (important pour la recherche)
             let ingredientsTotaux = plat.ingredients.map(ing => ing.nom);
             
             // Statut initial du plat et de ses accompagnements
@@ -93,21 +95,14 @@ app.post('/rechercher', (req, res) => {
             if (plat.accompagnements) {
                 plat.accompagnements.forEach(acc => {
                     let accStatus = "compatible";
+                    const accAllergenes = acc.allergenes || [];
                     
-                    // Vérifier si l'accompagnement contient des allergènes ou ingrédients recherchés
+                    // Vérifier si l'accompagnement contient des allergènes recherchés
                     for (const terme of recherche) {
                         // Vérifier allergènes de l'accompagnement
-                        if (acc.allergenes.some(all => normaliserEtComparer(all, terme))) {
+                        if (accAllergenes.some(all => normaliserEtComparer(all, terme))) {
                             accStatus = "incompatible";
                             break;
-                        }
-                        
-                        // Si l'accompagnement a des ingrédients spécifiés
-                        if (acc.ingredients) {
-                            if (acc.ingredients.some(ing => normaliserEtComparer(ing.nom, terme))) {
-                                accStatus = "incompatible";
-                                break;
-                            }
                         }
                     }
                     
@@ -127,11 +122,17 @@ app.post('/rechercher', (req, res) => {
                     break;
                 }
                 
-                // Vérifier les ingrédients du plat
-                if (ingredientsTotaux.some(ing => normaliserEtComparer(ing, terme))) {
-                    statutPlat = "incompatible";
-                    break;
+                // Très important : vérifier chaque ingrédient individuellement
+                let ingredientTrouve = false;
+                for (const ingredient of ingredientsTotaux) {
+                    if (normaliserEtComparer(ingredient, terme)) {
+                        statutPlat = "incompatible";
+                        ingredientTrouve = true;
+                        break;
+                    }
                 }
+                
+                if (ingredientTrouve) break;
             }
             
             // Créer le résultat pour ce plat
@@ -156,11 +157,14 @@ app.post('/rechercher', (req, res) => {
                 }
             }
             
-            // Organiser par catégorie
-            if (!resultatParCategorie[plat.categorie]) {
-                resultatParCategorie[plat.categorie] = [];
+            // S'assurer que la catégorie existe dans le résultat
+            const categorie = plat.categorie || "Non catégorisé";
+            if (!resultatParCategorie[categorie]) {
+                resultatParCategorie[categorie] = [];
             }
-            resultatParCategorie[plat.categorie].push(resultatPlat);
+            
+            // Ajouter le plat à sa catégorie
+            resultatParCategorie[categorie].push(resultatPlat);
         });
         
         res.json(resultatParCategorie);
