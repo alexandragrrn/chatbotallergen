@@ -5,9 +5,10 @@ const app = express();
 
 let plats = [];
 try {
-    plats = require('./data/plats.json');
+    plats = require(path.join(__dirname, './data/plats.json'));
 } catch (e) {
     console.error("Impossible de charger plats.json", e);
+    // Vous pourriez ajouter une valeur par défaut ici
 }
 
 app.use(express.json());
