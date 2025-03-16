@@ -29,7 +29,7 @@ function normaliserEtComparer(source, recherche) {
     source = normaliser(source);
     recherche = normaliser(recherche);
     
-    // Tolérance aux petites fautes (distance de Levenshtein simplifiée)
+    // Vérification exacte ou inclusion
     if (source === recherche) return true;
     if (source.includes(recherche) || recherche.includes(source)) return true;
     
@@ -83,7 +83,7 @@ app.post('/rechercher', (req, res) => {
             // Récupérer tous les allergènes du plat principal
             let allergenesTotaux = [...plat.allergenes];
             
-            // Extraire les noms d'ingrédients (important pour la recherche)
+            // Extraire les noms d'ingrédients
             let ingredientsTotaux = plat.ingredients.map(ing => ing.nom);
             
             // Statut initial du plat et de ses accompagnements
@@ -97,7 +97,7 @@ app.post('/rechercher', (req, res) => {
                     let accStatus = "compatible";
                     const accAllergenes = acc.allergenes || [];
                     
-                    // Vérifier si l'accompagnement contient des allergènes recherchés
+                    // Vérifier si l'accompagnement contient des allergènes ou ingrédients recherchés
                     for (const terme of recherche) {
                         // Vérifier allergènes de l'accompagnement
                         if (accAllergenes.some(all => normaliserEtComparer(all, terme))) {
@@ -122,17 +122,16 @@ app.post('/rechercher', (req, res) => {
                     break;
                 }
                 
-                // Très important : vérifier chaque ingrédient individuellement
-                let ingredientTrouve = false;
+                // CORRECTION: Vérifier spécifiquement chaque ingrédient
                 for (const ingredient of ingredientsTotaux) {
+                    // Vérification plus stricte pour les ingrédients comme "noix"
                     if (normaliserEtComparer(ingredient, terme)) {
                         statutPlat = "incompatible";
-                        ingredientTrouve = true;
                         break;
                     }
                 }
                 
-                if (ingredientTrouve) break;
+                if (statutPlat === "incompatible") break;
             }
             
             // Créer le résultat pour ce plat
