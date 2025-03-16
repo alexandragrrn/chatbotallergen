@@ -5,7 +5,6 @@ body {
     padding: 20px;
     color: #333;
 }
-
 .wrapper {
     max-width: 800px;
     margin: auto;
@@ -14,11 +13,9 @@ body {
     border-radius: 10px;
     box-shadow: 0 0 10px rgba(0,0,0,0.2);
 }
-
 .container {
     text-align: center;
 }
-
 input[type="text"] {
     width: 80%;
     padding: 10px;
@@ -27,7 +24,6 @@ input[type="text"] {
     margin-bottom: 15px;
     font-size: 16px;
 }
-
 button {
     padding: 10px 15px;
     background-color: #28a745;
@@ -36,11 +32,9 @@ button {
     border-radius: 5px;
     cursor: pointer;
 }
-
 button:hover {
     background-color: #218838;
 }
-
 .plat {
     text-align: left;
     margin-top: 15px;
@@ -49,51 +43,51 @@ button:hover {
     box-shadow: 0 2px 6px rgba(0,0,0,0.1);
     background-color: #fcfcfc;
 }
-
-.plat.compatible { border-left: 5px solid #28a745; }
-.plat.modifiable { border-left: 5px solid #ffae42; }
-.plat.incompatible { border-left: 5px solid #dc3545; }
-
+#results {
+    text-align: left;
+}
+.categorie {
+    margin-top: 30px;
+    margin-bottom: 15px;
+    padding-bottom: 5px;
+    border-bottom: 2px solid #28a745;
+    color: #218838;
+}
 /* Pour Mobile */
 @media (max-width: 600px) {
     body {
         padding: 10px;
     }
-
     .wrapper, .container {
         width: 100%;
         padding: 10px;
         box-shadow: none;
     }
-
     h1 {
         font-size: 22px;
     }
-
     input[type="text"], button {
         width: 100%;
     }
-
     input[type="text"] {
         font-size: 14px;
     }
-
     button {
         font-size: 16px;
         padding: 12px;
     }
-
     .plat {
         padding: 10px;
         margin: 10px 0;
     }
-
     .plat h3 {
         font-size: 16px;
     }
-
     .plat p {
         font-size: 13px;
+    }
+    .categorie {
+        font-size: 18px;
     }
 }
 @media (max-width: 600px) {
@@ -102,39 +96,137 @@ button:hover {
         padding: 10px;
         font-size: 14px;
     }
-
     .wrapper {
         padding: 5px;
     }
-
     .container {
+        padding: 15px;
+        border-radius: 8px;
+        box-shadow: none;
+        width: 95%;
+        body {
+    font-family: Arial, sans-serif;
+    background-color: #f5f5f5;
+    margin: 0;
+    padding: 20px;
+    color: #333;
+}
+.wrapper {
+    max-width: 800px;
+    margin: auto;
+    padding: 20px;
+    background-color: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.2);
+}
+.container {
+    text-align: center;
+}
+input[type="text"] {
+    width: 80%;
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    margin-bottom: 15px;
+    font-size: 16px;
+}
+button {
+    padding: 10px 15px;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+button:hover {
+    background-color: #218838;
+}
+.plat {
+    text-align: left;
+    margin-top: 15px;
     padding: 15px;
     border-radius: 8px;
-    box-shadow: none;
-    width: 95%;             /* ← Ajoute cette ligne */
-    max-width: 95%;         /* ← Ajoute aussi cette ligne */
-    margin: 10px auto;      /* ← Centrer le tout parfaitement */
-    box-sizing: border-box; /* ← Important pour éviter les débordements */
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    background-color: #fcfcfc;
 }
-
+#results {
+    text-align: left;
+}
+.categorie {
+    margin-top: 30px;
+    margin-bottom: 15px;
+    padding-bottom: 5px;
+    border-bottom: 2px solid #28a745;
+    color: #218838;
+}
+/* Pour Mobile */
+@media (max-width: 600px) {
+    body {
+        padding: 10px;
     }
-
+    .wrapper, .container {
+        width: 100%;
+        padding: 10px;
+        box-shadow: none;
+    }
+    h1 {
+        font-size: 22px;
+    }
+    input[type="text"], button {
+        width: 100%;
+    }
+    input[type="text"] {
+        font-size: 14px;
+    }
+    button {
+        font-size: 16px;
+        padding: 12px;
+    }
+    .plat {
+        padding: 10px;
+        margin: 10px 0;
+    }
+    .plat h3 {
+        font-size: 16px;
+    }
+    .plat p {
+        font-size: 13px;
+    }
+    .categorie {
+        font-size: 18px;
+    }
+}
+@media (max-width: 600px) {
+    body {
+        background-color: #f9f9f9;
+        padding: 10px;
+        font-size: 14px;
+    }
+    .wrapper {
+        padding: 5px;
+    }
+    .container {
+        padding: 15px;
+        border-radius: 8px;
+        box-shadow: none;
+        width: 95%;             
+        max-width: 95%;         
+        margin: 10px auto;      
+        box-sizing: border-box; 
+    }
     h1 {
         font-size: 20px;
         margin-bottom: 15px;
     }
-
     input[type="text"], button {
         width: 100%;
         font-size: 16px;
         margin: 8px 0;
     }
-
     button {
         padding: 12px;
         border-radius: 8px;
     }
-
     .plat {
         padding: 10px;
         margin-top: 15px;
@@ -142,7 +234,6 @@ button:hover {
         font-size: 14px;
         text-align: left;
     }
-
     #results h2 {
         font-size: 20px;
         margin-top: 20px;
@@ -154,5 +245,3 @@ button:hover {
         display: block;
     }
 }
-
-
