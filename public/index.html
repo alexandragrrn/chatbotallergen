@@ -26,7 +26,6 @@
                 return;
             }
             
-            // Afficher un message de chargement
             document.getElementById('results').innerHTML = '<p>Recherche en cours...</p>';
             
             fetch('/rechercher', {
@@ -38,13 +37,11 @@
             .then(data => {
                 let output = '<h2>Résultats :</h2>';
                 
-                // Parcourir les catégories
                 const categories = Object.keys(data);
                 
                 if (categories.length === 0) {
                     output += '<p>Aucun résultat trouvé.</p>';
                 } else {
-                    // Ordre spécifique pour les catégories si nécessaire
                     const ordreCategories = [
                         "Planche à partager", 
                         "Entrée", 
@@ -54,29 +51,23 @@
                         "Dessert"
                     ];
                     
-                    // Trier les catégories selon l'ordre souhaité
                     const categoriesTriees = categories.sort((a, b) => {
                         const indexA = ordreCategories.indexOf(a);
                         const indexB = ordreCategories.indexOf(b);
                         
-                        // Si les deux catégories sont dans l'ordre prédéfini
                         if (indexA !== -1 && indexB !== -1) {
                             return indexA - indexB;
                         }
-                        // Si seulement A est dans l'ordre prédéfini
                         if (indexA !== -1) {
                             return -1;
                         }
-                        // Si seulement B est dans l'ordre prédéfini
                         if (indexB !== -1) {
                             return 1;
                         }
-                        // Si aucune n'est dans l'ordre prédéfini, tri alphabétique
                         return a.localeCompare(b);
                     });
                     
                     categoriesTriees.forEach(categorie => {
-                        // CORRECTION: Afficher toujours la catégorie, même si vide
                         output += `<h3 class="categorie">${categorie}</h3>`;
                         
                         if (data[categorie].length === 0) {
@@ -92,19 +83,16 @@
                                     <p><strong>Ingrédients :</strong> ${plat.ingredients.join(', ')}</p>
                                     <p><strong>Allergènes :</strong> ${plat.allergenes.join(', ')}</p>`;
                                 
-                                // Afficher les ingrédients modifiables si disponibles
                                 if (plat.ingredientsModifiables && plat.ingredientsModifiables.length > 0) {
                                     output += `<p><strong>Ingrédients à retirer :</strong> 
                                         <span style="color: orange">${plat.ingredientsModifiables.join(', ')}</span></p>`;
                                 }
                                 
-                                // Afficher les ingrédients non modifiables si disponibles
                                 if (plat.ingredientsNonModifiables && plat.ingredientsNonModifiables.length > 0) {
                                     output += `<p><strong>Ingrédients problématiques non modifiables :</strong> 
                                         <span style="color: red">${plat.ingredientsNonModifiables.join(', ')}</span></p>`;
                                 }
                                 
-                                // Afficher les accompagnements si disponibles
                                 if (plat.accompagnements) {
                                     if (plat.accompagnements.compatibles.length > 0) {
                                         output += `<p><strong>Accompagnements possibles :</strong> 
