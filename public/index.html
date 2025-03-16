@@ -5,41 +5,82 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chatbot Allergènes</title>
     <link rel="stylesheet" href="/main.css">
-
 </head>
 <body>
     <div class="wrapper">
         <div class="container">
             <img src="/logo.png" alt="Logo Pic Vert" width="120px">
             <h1>Bienvenue au Restaurant Le Pic Vert</h1>
-            <p>Indiquez vos allergies pour découvrir les plats adaptés :</p>
-            <input type="text" id="allergyInput" placeholder="Ex : gluten, lait, œufs">
+            <p>Indiquez vos allergies ou ingrédients à éviter :</p>
+            <input type="text" id="allergyInput" placeholder="Ex : gluten, lait, oignon, fruits à coque">
             <button onclick="searchPlats()">Rechercher</button>
             <div id="results"></div>
         </div>
     </div>
-
     <script>
         function searchPlats() {
-            const allergies = document.getElementById('allergyInput').value.split(',').map(a => a.trim().toLowerCase());
-
+            const recherche = document.getElementById('allergyInput').value.split(',').map(a => a.trim());
+            
+            if (recherche.length === 0 || (recherche.length === 1 && recherche[0] === "")) {
+                document.getElementById('results').innerHTML = '<p>Veuillez entrer au moins un terme de recherche.</p>';
+                return;
+            }
+            
             fetch('/rechercher', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ allergies })
+                body: JSON.stringify({ recherche })
             })
             .then(response => response.json())
             .then(data => {
                 let output = '<h2>Résultats :</h2>';
-                data.forEach(plat => {
-                    let color = plat.status === 'compatible' ? 'green' : plat.status === 'modifiable' ? 'orange' : 'red';
-                    output += `<div class="plat" style="border-left: 5px solid ${color};">
-                        <h3>${plat.nom}</h3>
-                        <p>${plat.description}</p>
-                        <p><strong>Allergènes :</strong> ${plat.allergenes.join(', ')}</p>
-                        <p><strong>Statut :</strong> <span style="color: ${color};">${plat.status}</span></p>
-                    </div>`;
-                });
+                
+                // Parcourir les catégories
+                const categories = Object.keys(data);
+                
+                if (categories.length === 0) {
+                    output += '<p>Aucun résultat trouvé.</p>';
+                } else {
+                    categories.forEach(categorie => {
+                        output += `<h3 class="categorie">${categorie}</h3>`;
+                        
+                        data[categorie].forEach(plat => {
+                            let color = plat.status === 'compatible' ? 'green' : 
+                                       plat.status === 'modifiable' ? 'orange' : 'red';
+                            
+                            output += `<div class="plat" style="border-left: 5px solid ${color};">
+                                <h3>${plat.nom}</h3>
+                                <p>${plat.description}</p>
+                                <p><strong>Ingrédients :</strong> ${plat.ingredients.join(', ')}</p>
+                                <p><strong>Allergènes :</strong> ${plat.allergenes.join(', ')}</p>`;
+                            
+                            // Afficher les accompagnements si disponibles
+                            if (plat.accompagnements) {
+                                if (plat.accompagnements.compatibles.length > 0) {
+                                    output += `<p><strong>Accompagnements possibles :</strong> 
+                                        <span style="color: green">${plat.accompagnements.compatibles.join(', ')}</span></p>`;
+                                }
+                                if (plat.accompagnements.incompatibles.length > 0) {
+                                    output += `<p><strong>Accompagnements à éviter :</strong> 
+                                        <span style="color: red">${plat.accompagnements.incompatibles.join(', ')}</span></p>`;
+                                }
+                            }
+                            
+                            output += `<p><strong>Statut :</strong> <span style="color: ${color};">`;
+                            
+                            if (plat.status === 'compatible') {
+                                output += 'Compatible avec vos restrictions';
+                            } else if (plat.status === 'modifiable') {
+                                output += 'Compatible avec certains accompagnements';
+                            } else {
+                                output += 'Incompatible avec vos restrictions';
+                            }
+                            
+                            output += `</span></p></div>`;
+                        });
+                    });
+                }
+                
                 document.getElementById('results').innerHTML = output;
             })
             .catch(error => {
