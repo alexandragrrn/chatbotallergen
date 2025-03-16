@@ -181,6 +181,7 @@ app.post('/rechercher', (req, res) => {
             }
             
             // Ajouter le plat à sa catégorie
+            // Ajouter le plat à sa catégorie
             resultatParCategorie[categorie].push(resultatPlat);
         });
         
@@ -198,3 +199,5 @@ app.get('/rechercher', (req, res) => {
 app.listen(process.env.PORT || 3000);
 
 module.exports = app;
+
+                      
