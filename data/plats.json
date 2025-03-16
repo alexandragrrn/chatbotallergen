@@ -5,8 +5,8 @@
     "description": "Notre best seller !",
     "ingredients": [
       {"nom": "Charcuterie", "modifiable": false},
-      {"nom": "Salade", "modifiable": false},
-      {"nom": "Noix", "modifiable": false},
+      {"nom": "Salade", "modifiable": true},
+      {"nom": "Noix", "modifiable": true},
       {"nom": "Dés de Comté", "modifiable": false}
     ],
     "allergenes": ["sulfite", "œuf", "lait", "arachide"]
@@ -17,7 +17,7 @@
     "description": "Une salade typique du Jura",
     "ingredients": [
       {"nom": "Salade", "modifiable": false},
-      {"nom": "Noix", "modifiable": false},
+      {"nom": "Noix", "modifiable": true},
       {"nom": "Comté", "modifiable": false}
     ],
     "allergenes": ["fruits à coque", "lait"]
