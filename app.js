@@ -237,4 +237,45 @@ app.listen(port, () => {
     console.log(`Serveur démarré sur le port ${port}`);
 });
 
+// Ajouter à app.js
+app.post('/chat', (req, res) => {
+    const userMessage = req.body.message || '';
+    
+    // Liste des allergènes connus depuis notre base de données
+    const tousLesAllergenes = new Set();
+    ingredients.forEach(ing => {
+        if (ing.allergenes) {
+            ing.allergenes.split(',').forEach(all => tousLesAllergenes.add(all.trim()));
+        }
+    });
+    
+    // Extraire les allergènes mentionnés dans le message
+    const allergenesMentionnes = Array.from(tousLesAllergenes)
+        .filter(allergene => userMessage.toLowerCase().includes(allergene.toLowerCase()));
+    
+    // Si des allergènes sont détectés, on utilise notre fonction de recherche existante
+    if (allergenesMentionnes.length > 0) {
+        // Utiliser la même logique que dans la route /rechercher
+        // ...
+        
+        // Reformater les résultats pour une présentation conversationnelle
+        const resultat = {
+            allergenes: allergenesMentionnes,
+            reponse: "Voici les plats compatibles avec vos allergies...",
+            platsCompatibles: [],
+            platsModifiables: [],
+            platsIncompatibles: []
+            // ...
+        };
+        
+        res.json(resultat);
+    } else {
+        // Si pas d'allergènes détectés
+        res.json({
+            allergenes: [],
+            reponse: "Je n'ai pas détecté d'allergènes dans votre message. Pourriez-vous préciser vos allergies ou les ingrédients à éviter?"
+        });
+    }
+});
+
 module.exports = app;
