@@ -1,3 +1,76 @@
+const express = require('express');
+const cors = require('cors');
+const fs = require('fs');
+const path = require('path');
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+// Middleware
+app.use(cors());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Charger les données
+const data = JSON.parse(fs.readFileSync(path.join(__dirname, 'data/restaurant_data.json'), 'utf8'));
+const plats = data.plats;
+const ingredients = data.ingredients;
+const compositions = data.compositions;
+const accompagnements = data.accompagnements;
+const optionsAccompagnement = data.optionsAccompagnement;
+
+// Fonction pour obtenir les ingrédients d'un plat
+function getIngredientsPlat(platId) {
+    const idsIngredients = compositions
+        .filter(comp => comp.idPlat === platId)
+        .map(comp => comp.idIngredient);
+    
+    return idsIngredients.map(id => {
+        const ingredient = ingredients.find(ing => ing.id === id);
+        const composition = compositions.find(comp => comp.idPlat === platId && comp.idIngredient === id);
+        return {
+            ...ingredient,
+            modifiable: composition.modifiable
+        };
+    });
+}
+
+// Fonction pour obtenir les accompagnements d'un plat
+function getAccompagnementsPlat(platId) {
+    const idsAccompagnements = optionsAccompagnement
+        .filter(opt => opt.idPlat === platId)
+        .map(opt => opt.idAccompagnement);
+    
+    return idsAccompagnements.map(id => accompagnements.find(acc => acc.id === id));
+}
+
+// Fonction pour vérifier si des allergènes contiennent un terme de recherche
+function contientAllergene(allergenes, terme) {
+    if (!allergenes) return false;
+    
+    // Normaliser les allergènes et le terme de recherche
+    const normaliserTexte = (texte) => {
+        return texte.toLowerCase()
+            .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+            .replace(/[^a-z0-9\s]/g, "")
+            .trim();
+    };
+    
+    const allergenesList = allergenes.split(',').map(a => normaliserTexte(a.trim()));
+    const termeNormalise = normaliserTexte(terme);
+    
+    return allergenesList.some(all => 
+        all.includes(termeNormalise) || termeNormalise.includes(all)
+    );
+}
+
+// Route principale
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// Route pour la recherche
 app.post('/rechercher', (req, res) => {
     const recherche = req.body.recherche || [];
     
@@ -139,3 +212,15 @@ app.post('/rechercher', (req, res) => {
         res.status(500).json({ erreur: "Erreur interne du serveur" });
     }
 });
+
+// Route pour l'interface de chat
+app.get('/chat.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'chat.html'));
+});
+
+// Démarrer le serveur
+app.listen(PORT, () => {
+    console.log(`Serveur démarré sur le port ${PORT}`);
+});
+
+module.exports = app; // Pour les tests ou l'intégration avec Vercel
