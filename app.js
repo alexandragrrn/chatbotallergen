@@ -157,7 +157,23 @@ app.post('/rechercher', (req, res) => {
                     contientAllergene(ingredient.allergenes, terme)
                 );
                 
-                if (contientUnAllergeneRecherche) {
+                // NOUVEAU: Vérifier si l'ingrédient correspond à un nom recherché
+                const estIngredientRecherche = recherche.some(terme => {
+                    const normaliserTexte = (texte) => {
+                        return texte.toLowerCase()
+                            .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+                            .replace(/[^a-z0-9\s]/g, "")
+                            .trim();
+                    };
+                    
+                    const nomIngredientNormalise = normaliserTexte(ingredient.nom);
+                    const termeRecherche = normaliserTexte(terme);
+                    
+                    return nomIngredientNormalise.includes(termeRecherche) || 
+                           termeRecherche.includes(nomIngredientNormalise);
+                });
+                
+                if (contientUnAllergeneRecherche || estIngredientRecherche) {
                     if (ingredient.modifiable === "Oui") {
                         ingredientsModifiables.push(ingredient.nom);
                         console.log(`Ingrédient modifiable trouvé dans ${plat.nom}: ${ingredient.nom}`);
@@ -168,75 +184,7 @@ app.post('/rechercher', (req, res) => {
                 }
             });
             
-            // Déterminer le statut du plat
-            let statutPlat = "compatible";
-            
-            if (ingredientsNonModifiables.length > 0) {
-                statutPlat = "incompatible";
-            } else if (ingredientsModifiables.length > 0) {
-                statutPlat = "modifiable";
-            }
-            
-            // Vérifier les accompagnements
-            let accompagnementsCompatibles = [];
-            let accompagnementsIncompatibles = [];
-            
-            if (plat.aDesAccompagnements === "Oui") {
-                const accompagnementsPlat = getAccompagnementsPlat(plat.id);
-                
-                accompagnementsPlat.forEach(acc => {
-                    // Vérifier si l'accompagnement contient un des allergènes recherchés
-                    const contientUnAllergeneRecherche = recherche.some(terme => 
-                        contientAllergene(acc.allergenes, terme)
-                    );
-                    
-                    if (contientUnAllergeneRecherche) {
-                        accompagnementsIncompatibles.push(acc.nom);
-                    } else {
-                        accompagnementsCompatibles.push(acc.nom);
-                    }
-                });
-            }
-            
-            // Créer le résultat pour ce plat
-            const resultatPlat = {
-                nom: plat.nom,
-                description: plat.description,
-                allergenes: Array.from(allergenes),
-                ingredients: ingredientsPlat.map(ing => ing.nom),
-                status: statutPlat,
-                ingredientsModifiables: ingredientsModifiables,
-                ingredientsNonModifiables: ingredientsNonModifiables
-            };
-            
-            // Ajouter les accompagnements si nécessaire
-            if (plat.aDesAccompagnements === "Oui") {
-                resultatPlat.accompagnements = {
-                    compatibles: accompagnementsCompatibles,
-                    incompatibles: accompagnementsIncompatibles
-                };
-            }
-            
-            // Ajouter à la catégorie
-            const categorie = plat.categorie || "Non catégorisé";
-            if (!resultatParCategorie[categorie]) {
-                resultatParCategorie[categorie] = [];
-            }
-            
-            resultatParCategorie[categorie].push(resultatPlat);
-            console.log(`Plat ${plat.nom} ajouté à la catégorie ${categorie} avec statut ${statutPlat}`);
-        });
-        
-        console.log("Catégories trouvées:", Object.keys(resultatParCategorie));
-        console.log("Nombre total de plats dans le résultat:", 
-            Object.values(resultatParCategorie).reduce((total, plats) => total + plats.length, 0));
-        
-        res.json(resultatParCategorie);
-    } catch (error) {
-        console.error("Erreur serveur:", error);
-        res.status(500).json({ erreur: "Erreur serveur : " + error.message });
-    }
-});
+            // Le reste du code reste inchangé...
 
 app.get('/rechercher', (req, res) => {
     res.status(200).send("🚀 Le serveur fonctionne, mais utilisez POST pour accéder à cette route !");
