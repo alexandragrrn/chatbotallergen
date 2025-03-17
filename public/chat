@@ -1,0 +1,30 @@
+// Nouveau fichier: public/chat.html
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assistant Allergènes - Le Pic Vert</title>
+    <link rel="stylesheet" href="/chat.css">
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            <img src="/logo.png" alt="Logo Pic Vert" width="60px">
+            <h1>Assistant Allergènes - Le Pic Vert</h1>
+        </div>
+        <div class="chat-messages" id="chat-messages">
+            <div class="message bot">
+                Bonjour ! Je suis votre assistant du restaurant Le Pic Vert. 
+                Dites-moi quelles sont vos allergies ou les ingrédients que vous souhaitez éviter, 
+                et je vous aiderai à trouver des plats adaptés à vos besoins.
+            </div>
+        </div>
+        <div class="chat-input">
+            <input type="text" id="user-input" placeholder="Ex: Je suis allergique au gluten et aux fruits à coque">
+            <button id="send-btn">Envoyer</button>
+        </div>
+    </div>
+    <script src="/chat.js"></script>
+</body>
+</html>
