@@ -44,18 +44,57 @@ app.use(cors());
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Fonction simplifiée de comparaison de texte
+// Fonction améliorée de comparaison de texte
 function contientAllergene(allergenes, terme) {
     // Si pas d'allergènes, retourne false
     if (!allergenes) return false;
     
-    // Convertir en minuscules et diviser par virgule
-    const listeAllergenes = allergenes.toLowerCase().split(',').map(a => a.trim());
-    const termeRecherche = terme.toLowerCase().trim();
+    // Normaliser les chaînes (supprimer les accents, mettre en minuscules)
+    const normaliserTexte = (texte) => {
+        return texte.toLowerCase()
+            .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // Supprimer les accents
+            .replace(/[^a-z0-9\s]/g, "") // Garder uniquement lettres, chiffres et espaces
+            .trim();
+    };
     
-    // Vérifier si un des allergènes correspond au terme recherché
-    return listeAllergenes.some(allergene => 
-        allergene.includes(termeRecherche) || termeRecherche.includes(allergene)
-    );
+    // Convertir la liste d'allergènes en format normalisé
+    const listeAllergenes = allergenes.split(',')
+        .map(a => normaliserTexte(a.trim()));
+    
+    // Normaliser le terme recherché
+    const termeRecherche = normaliserTexte(terme);
+    
+    // Gérer les variations singulier/pluriel
+    const termeSingulier = termeRecherche.endsWith('s') ? termeRecherche.slice(0, -1) : termeRecherche;
+    const termePluriel = termeRecherche.endsWith('s') ? termeRecherche : termeRecherche + 's';
+    
+    // Gérer les cas spéciaux
+    const casSpeciaux = {
+        "fruit a coque": "fruits a coque",
+        "fruits a coques": "fruits a coque",
+        "fruit à coque": "fruits à coque",
+        "fruits à coques": "fruits à coque"
+    };
+    
+    // Vérifier les correspondances avec les variations
+    return listeAllergenes.some(allergene => {
+        // Vérification directe
+        if (allergene.includes(termeRecherche) || termeRecherche.includes(allergene)) {
+            return true;
+        }
+        
+        // Vérification avec singulier/pluriel
+        if (allergene.includes(termeSingulier) || allergene.includes(termePluriel)) {
+            return true;
+        }
+        
+        // Vérification des cas spéciaux
+        if (casSpeciaux[termeRecherche] && allergene.includes(normaliserTexte(casSpeciaux[termeRecherche]))) {
+            return true;
+        }
+        
+        return false;
+    });
 }
 
 // Obtenir tous les ingrédients d'un plat
