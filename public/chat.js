@@ -1,4 +1,3 @@
-// Nouveau fichier: public/chat.js
 document.addEventListener('DOMContentLoaded', function() {
     const messagesContainer = document.getElementById('chat-messages');
     const userInput = document.getElementById('user-input');
