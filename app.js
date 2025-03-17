@@ -12,9 +12,18 @@ let optionsAccompagnement = [];
 
 // Chargement des données
 try {
-    // Vous pouvez remplacer ces lignes par le chargement depuis une base de données
-    // ou depuis des fichiers JSON séparés
-    const data = require(path.join(__dirname, './data/restaurant_data.json'));
+    // Utiliser console.log pour le débogage
+    console.log("Tentative de chargement des données...");
+    const dataPath = path.join(__dirname, './data/restaurant_data.json');
+    console.log("Chemin du fichier:", dataPath);
+    
+    const data = require(dataPath);
+    console.log("Données chargées avec succès");
+    
+    // Logging des données pour le débogage
+    console.log(`Nombre d'ingrédients: ${data.ingredients ? data.ingredients.length : 0}`);
+    console.log(`Nombre de plats: ${data.plats ? data.plats.length : 0}`);
+    
     ingredients = data.ingredients || [];
     plats = data.plats || [];
     compositions = data.compositions || [];
@@ -22,6 +31,7 @@ try {
     optionsAccompagnement = data.optionsAccompagnement || [];
 } catch (e) {
     console.error("Impossible de charger les données", e);
+    // Initialiser avec des données vides
     ingredients = [];
     plats = [];
     compositions = [];
@@ -33,27 +43,38 @@ app.use(express.json());
 app.use(cors());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Fonction simplifiée pour comparer les chaînes
+// Fonction améliorée pour comparer les chaînes
 function comparerTexte(source, recherche) {
+    // Vérifier si les valeurs sont définies
+    if (!source || !recherche) return false;
+    
     source = source.toLowerCase().trim();
     recherche = recherche.toLowerCase().trim();
     
+    // Vérifier l'inclusion dans les deux sens
     return source.includes(recherche) || recherche.includes(source);
 }
 
 // Obtenir tous les ingrédients d'un plat
 function getIngredientsPlat(idPlat) {
-    return compositions
-        .filter(comp => comp.idPlat === idPlat)
-        .map(comp => {
-            const ingredient = ingredients.find(ing => ing.id === comp.idIngredient);
-            return {
-                id: comp.idIngredient,
-                nom: ingredient ? ingredient.nom : 'Inconnu',
-                allergenes: ingredient ? ingredient.allergenes : [],
-                modifiable: comp.modifiable
-            };
-        });
+    // Vérifier si les compositions existent
+    if (!compositions || compositions.length === 0) {
+        console.log(`Pas de compositions trouvées pour le plat ${idPlat}`);
+        return [];
+    }
+    
+    const compsPlat = compositions.filter(comp => comp.idPlat === idPlat);
+    console.log(`${compsPlat.length} compositions trouvées pour le plat ${idPlat}`);
+    
+    return compsPlat.map(comp => {
+        const ingredient = ingredients.find(ing => ing.id === comp.idIngredient);
+        return {
+            id: comp.idIngredient,
+            nom: ingredient ? ingredient.nom : 'Inconnu',
+            allergenes: ingredient ? ingredient.allergenes : '',
+            modifiable: comp.modifiable
+        };
+    });
 }
 
 // Obtenir tous les accompagnements d'un plat
@@ -68,16 +89,22 @@ function getAccompagnementsPlat(idPlat) {
 app.post('/rechercher', (req, res) => {
     const recherche = req.body.recherche || [];
     
+    console.log("Recherche reçue:", recherche);
+    
     if (!recherche || !Array.isArray(recherche)) {
         return res.status(400).json({ erreur: "Critères de recherche mal envoyés depuis le client." });
     }
 
     try {
+        console.log(`Recherche parmi ${plats.length} plats`);
         const resultatParCategorie = {};
         
         plats.forEach(plat => {
+            console.log(`Traitement du plat: ${plat.nom} (ID: ${plat.id})`);
+            
             // Récupérer les ingrédients du plat
             const ingredientsPlat = getIngredientsPlat(plat.id);
+            console.log(`${ingredientsPlat.length} ingrédients trouvés pour ${plat.nom}`);
             
             // Récupérer les allergènes du plat (à partir des ingrédients)
             const allergenes = new Set();
@@ -181,8 +208,10 @@ app.post('/rechercher', (req, res) => {
             resultatParCategorie[categorie].push(resultatPlat);
         });
         
+        console.log("Résultats par catégorie:", Object.keys(resultatParCategorie));
         res.json(resultatParCategorie);
     } catch (error) {
+        console.error("Erreur serveur:", error);
         res.status(500).json({ erreur: "Erreur serveur : " + error.message });
     }
 });
@@ -191,6 +220,21 @@ app.get('/rechercher', (req, res) => {
     res.status(200).send("🚀 Le serveur fonctionne, mais utilise POST pour accéder à cette route !");
 });
 
-app.listen(process.env.PORT || 3000);
+// Ajout d'une route pour vérifier les données chargées
+app.get('/debug', (req, res) => {
+    res.json({
+        ingredients: ingredients.length,
+        plats: plats.length,
+        compositions: compositions.length,
+        accompagnements: accompagnements.length,
+        optionsAccompagnement: optionsAccompagnement.length,
+        platsDetails: plats
+    });
+});
+
+const port = process.env.PORT || 3000;
+app.listen(port, () => {
+    console.log(`Serveur démarré sur le port ${port}`);
+});
 
 module.exports = app;
