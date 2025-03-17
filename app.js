@@ -46,13 +46,18 @@ app.use(express.static(path.join(__dirname, 'public')));
 // Fonction améliorée pour comparer les chaînes
 function comparerTexte(source, recherche) {
     // Vérifier si les valeurs sont définies
-    if (!source || !recherche) return false;
+    if (!source || !recherche) {
+        console.log(`comparerTexte: source ou recherche non définie. source=${source}, recherche=${recherche}`);
+        return false;
+    }
     
     source = source.toLowerCase().trim();
     recherche = recherche.toLowerCase().trim();
     
     // Vérifier l'inclusion dans les deux sens
-    return source.includes(recherche) || recherche.includes(source);
+    const result = source.includes(recherche) || recherche.includes(source);
+    console.log(`comparerTexte: '${source}' vs '${recherche}' => ${result}`);
+    return result;
 }
 
 // Obtenir tous les ingrédients d'un plat
@@ -100,11 +105,16 @@ app.post('/rechercher', (req, res) => {
         const resultatParCategorie = {};
         
         plats.forEach(plat => {
-            console.log(`Traitement du plat: ${plat.nom} (ID: ${plat.id})`);
+            console.log(`\n===== Traitement du plat: ${plat.nom} (ID: ${plat.id}) =====`);
             
             // Récupérer les ingrédients du plat
             const ingredientsPlat = getIngredientsPlat(plat.id);
             console.log(`${ingredientsPlat.length} ingrédients trouvés pour ${plat.nom}`);
+            
+            // Log détaillé des ingrédients
+            ingredientsPlat.forEach(ing => {
+                console.log(`  - Ingrédient: ${ing.nom}, Allergènes: "${ing.allergenes}", Modifiable: ${ing.modifiable}`);
+            });
             
             // Récupérer les allergènes du plat (à partir des ingrédients)
             const allergenes = new Set();
@@ -113,6 +123,8 @@ app.post('/rechercher', (req, res) => {
                     ing.allergenes.split(',').forEach(all => allergenes.add(all.trim()));
                 }
             });
+            
+            console.log(`Allergènes identifiés pour ${plat.nom}:`, Array.from(allergenes));
             
             // Vérifier la compatibilité des ingrédients avec les critères de recherche
             let statutPlat = "compatible";
@@ -123,21 +135,37 @@ app.post('/rechercher', (req, res) => {
             ingredientsPlat.forEach(ingredient => {
                 const allergenesTrouvees = [];
                 
+                console.log(`\n  Analyse de l'ingrédient "${ingredient.nom}" avec allergènes "${ingredient.allergenes}"`);
+                
                 if (ingredient.allergenes) {
                     const allergenesList = ingredient.allergenes.split(',').map(a => a.trim());
+                    console.log(`  Liste des allergènes pour ${ingredient.nom}:`, allergenesList);
                     
                     for (const terme of recherche) {
-                        if (allergenesList.some(all => comparerTexte(all, terme))) {
-                            allergenesTrouvees.push(terme);
+                        console.log(`    Recherche du terme "${terme}" dans les allergènes de "${ingredient.nom}"`);
+                        
+                        for (const all of allergenesList) {
+                            const match = comparerTexte(all, terme);
+                            console.log(`      Comparaison: "${all}" vs "${terme}" => ${match ? "MATCH" : "pas de correspondance"}`);
+                            
+                            if (match) {
+                                allergenesTrouvees.push(terme);
+                                break;
+                            }
                         }
                     }
+                } else {
+                    console.log(`  Aucun allergène pour l'ingrédient "${ingredient.nom}"`);
                 }
                 
                 if (allergenesTrouvees.length > 0) {
+                    console.log(`  ⚠️ Allergènes trouvés pour "${ingredient.nom}":`, allergenesTrouvees);
                     if (ingredient.modifiable === "Oui") {
                         ingredientsModifiables.push(ingredient.nom);
+                        console.log(`  → L'ingrédient "${ingredient.nom}" est modifiable.`);
                     } else {
                         ingredientsNonModifiables.push(ingredient.nom);
+                        console.log(`  → L'ingrédient "${ingredient.nom}" n'est PAS modifiable.`);
                     }
                 }
             });
@@ -149,31 +177,53 @@ app.post('/rechercher', (req, res) => {
                 statutPlat = "modifiable";
             }
             
+            console.log(`Statut du plat "${plat.nom}": ${statutPlat}`);
+            console.log(`Ingrédients modifiables: ${ingredientsModifiables.join(', ')}`);
+            console.log(`Ingrédients non modifiables: ${ingredientsNonModifiables.join(', ')}`);
+            
             // Vérifier les accompagnements
             let accompagnementsCompatibles = [];
             let accompagnementsIncompatibles = [];
             
             if (plat.aDesAccompagnements === "Oui") {
                 const accompagnementsPlat = getAccompagnementsPlat(plat.id);
+                console.log(`\nAccompagnements pour "${plat.nom}":`, accompagnementsPlat.map(a => a.nom));
                 
                 accompagnementsPlat.forEach(acc => {
                     let accStatus = "compatible";
                     
+                    console.log(`  Analyse de l'accompagnement "${acc.nom}" avec allergènes "${acc.allergenes}"`);
+                    
                     if (acc.allergenes) {
                         const allergenesList = acc.allergenes.split(',').map(a => a.trim());
+                        console.log(`  Liste des allergènes pour ${acc.nom}:`, allergenesList);
                         
                         for (const terme of recherche) {
-                            if (allergenesList.some(all => comparerTexte(all, terme))) {
-                                accStatus = "incompatible";
-                                break;
+                            console.log(`    Recherche du terme "${terme}" dans les allergènes de "${acc.nom}"`);
+                            
+                            for (const all of allergenesList) {
+                                const match = comparerTexte(all, terme);
+                                console.log(`      Comparaison: "${all}" vs "${terme}" => ${match ? "MATCH" : "pas de correspondance"}`);
+                                
+                                if (match) {
+                                    accStatus = "incompatible";
+                                    console.log(`  ⚠️ Allergène trouvé dans "${acc.nom}": ${terme}`);
+                                    break;
+                                }
                             }
+                            
+                            if (accStatus === "incompatible") break;
                         }
+                    } else {
+                        console.log(`  Aucun allergène pour l'accompagnement "${acc.nom}"`);
                     }
                     
                     if (accStatus === "compatible") {
                         accompagnementsCompatibles.push(acc.nom);
+                        console.log(`  → L'accompagnement "${acc.nom}" est compatible.`);
                     } else {
                         accompagnementsIncompatibles.push(acc.nom);
+                        console.log(`  → L'accompagnement "${acc.nom}" n'est PAS compatible.`);
                     }
                 });
             }
@@ -206,9 +256,12 @@ app.post('/rechercher', (req, res) => {
             }
             
             resultatParCategorie[categorie].push(resultatPlat);
+            console.log(`Plat "${plat.nom}" ajouté à la catégorie "${categorie}"`);
         });
         
-        console.log("Résultats par catégorie:", Object.keys(resultatParCategorie));
+        console.log("\n===== RESULTAT FINAL =====");
+        console.log("Catégories trouvées:", Object.keys(resultatParCategorie));
+        console.log("Structure du résultat:", JSON.stringify(resultatParCategorie, null, 2).substring(0, 200) + "...");
         res.json(resultatParCategorie);
     } catch (error) {
         console.error("Erreur serveur:", error);
@@ -224,10 +277,11 @@ app.get('/rechercher', (req, res) => {
 app.get('/debug', (req, res) => {
     res.json({
         ingredients: ingredients.length,
-        plats: plats.length,
+        platsCount: plats.length,
         compositions: compositions.length,
         accompagnements: accompagnements.length,
         optionsAccompagnement: optionsAccompagnement.length,
+        ingredientsDetails: ingredients,
         platsDetails: plats
     });
 });
