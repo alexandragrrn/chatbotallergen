@@ -3,12 +3,30 @@ const cors = require('cors');
 const path = require('path');
 const app = express();
 
+// Structures de données
+let ingredients = [];
 let plats = [];
+let compositions = [];
+let accompagnements = [];
+let optionsAccompagnement = [];
+
+// Chargement des données
 try {
-    plats = require(path.join(__dirname, './data/plats.json'));
+    // Vous pouvez remplacer ces lignes par le chargement depuis une base de données
+    // ou depuis des fichiers JSON séparés
+    const data = require(path.join(__dirname, './data/restaurant_data.json'));
+    ingredients = data.ingredients || [];
+    plats = data.plats || [];
+    compositions = data.compositions || [];
+    accompagnements = data.accompagnements || [];
+    optionsAccompagnement = data.optionsAccompagnement || [];
 } catch (e) {
-    console.error("Impossible de charger plats.json", e);
+    console.error("Impossible de charger les données", e);
+    ingredients = [];
     plats = [];
+    compositions = [];
+    accompagnements = [];
+    optionsAccompagnement = [];
 }
 
 app.use(express.json());
@@ -23,6 +41,30 @@ function comparerTexte(source, recherche) {
     return source.includes(recherche) || recherche.includes(source);
 }
 
+// Obtenir tous les ingrédients d'un plat
+function getIngredientsPlat(idPlat) {
+    return compositions
+        .filter(comp => comp.idPlat === idPlat)
+        .map(comp => {
+            const ingredient = ingredients.find(ing => ing.id === comp.idIngredient);
+            return {
+                id: comp.idIngredient,
+                nom: ingredient ? ingredient.nom : 'Inconnu',
+                allergenes: ingredient ? ingredient.allergenes : [],
+                modifiable: comp.modifiable
+            };
+        });
+}
+
+// Obtenir tous les accompagnements d'un plat
+function getAccompagnementsPlat(idPlat) {
+    const idsAccompagnement = optionsAccompagnement
+        .filter(opt => opt.idPlat === idPlat)
+        .map(opt => opt.idAccompagnement);
+    
+    return accompagnements.filter(acc => idsAccompagnement.includes(acc.id));
+}
+
 app.post('/rechercher', (req, res) => {
     const recherche = req.body.recherche || [];
     
@@ -34,23 +76,70 @@ app.post('/rechercher', (req, res) => {
         const resultatParCategorie = {};
         
         plats.forEach(plat => {
-            let allergenes = [...plat.allergenes];
+            // Récupérer les ingrédients du plat
+            const ingredientsPlat = getIngredientsPlat(plat.id);
+            
+            // Récupérer les allergènes du plat (à partir des ingrédients)
+            const allergenes = new Set();
+            ingredientsPlat.forEach(ing => {
+                if (ing.allergenes) {
+                    ing.allergenes.split(',').forEach(all => allergenes.add(all.trim()));
+                }
+            });
+            
+            // Vérifier la compatibilité des ingrédients avec les critères de recherche
             let statutPlat = "compatible";
-            let accompagnementsCompatibles = [];
-            let accompagnementsIncompatibles = [];
             let ingredientsModifiables = [];
             let ingredientsNonModifiables = [];
             
-            // Vérifier les accompagnements
-            if (plat.accompagnements) {
-                plat.accompagnements.forEach(acc => {
-                    let accStatus = "compatible";
-                    const accAllergenes = acc.allergenes || [];
+            // Vérifier chaque ingrédient par rapport aux critères de recherche
+            ingredientsPlat.forEach(ingredient => {
+                const allergenesTrouvees = [];
+                
+                if (ingredient.allergenes) {
+                    const allergenesList = ingredient.allergenes.split(',').map(a => a.trim());
                     
                     for (const terme of recherche) {
-                        if (accAllergenes.some(all => comparerTexte(all, terme))) {
-                            accStatus = "incompatible";
-                            break;
+                        if (allergenesList.some(all => comparerTexte(all, terme))) {
+                            allergenesTrouvees.push(terme);
+                        }
+                    }
+                }
+                
+                if (allergenesTrouvees.length > 0) {
+                    if (ingredient.modifiable === "Oui") {
+                        ingredientsModifiables.push(ingredient.nom);
+                    } else {
+                        ingredientsNonModifiables.push(ingredient.nom);
+                    }
+                }
+            });
+            
+            // Déterminer le statut final du plat
+            if (ingredientsNonModifiables.length > 0) {
+                statutPlat = "incompatible";
+            } else if (ingredientsModifiables.length > 0) {
+                statutPlat = "modifiable";
+            }
+            
+            // Vérifier les accompagnements
+            let accompagnementsCompatibles = [];
+            let accompagnementsIncompatibles = [];
+            
+            if (plat.aDesAccompagnements === "Oui") {
+                const accompagnementsPlat = getAccompagnementsPlat(plat.id);
+                
+                accompagnementsPlat.forEach(acc => {
+                    let accStatus = "compatible";
+                    
+                    if (acc.allergenes) {
+                        const allergenesList = acc.allergenes.split(',').map(a => a.trim());
+                        
+                        for (const terme of recherche) {
+                            if (allergenesList.some(all => comparerTexte(all, terme))) {
+                                accStatus = "incompatible";
+                                break;
+                            }
                         }
                     }
                     
@@ -62,50 +151,21 @@ app.post('/rechercher', (req, res) => {
                 });
             }
             
-            // Vérifier les allergènes du plat
-            let allergenesTrouves = false;
-            for (const terme of recherche) {
-                if (allergenes.some(all => comparerTexte(all, terme))) {
-                    allergenesTrouves = true;
-                    statutPlat = "incompatible";
-                }
-            }
-            
-            // Vérifier chaque ingrédient
-            for (const terme of recherche) {
-                for (const ingredient of plat.ingredients) {
-                    if (comparerTexte(ingredient.nom, terme)) {
-                        if (ingredient.modifiable) {
-                            ingredientsModifiables.push(ingredient.nom);
-                        } else {
-                            ingredientsNonModifiables.push(ingredient.nom);
-                        }
-                    }
-                }
-            }
-            
-            // Déterminer le statut final
-            if (ingredientsNonModifiables.length > 0) {
-                statutPlat = "incompatible";
-            } else if (ingredientsModifiables.length > 0) {
-                statutPlat = "modifiable";
-            }
-            
-            // Créer le résultat
-            let ingredientsTotaux = plat.ingredients.map(ing => ing.nom);
+            // Créer le résultat pour ce plat
+            const ingredientsTotaux = ingredientsPlat.map(ing => ing.nom);
             
             const resultatPlat = {
                 nom: plat.nom,
                 description: plat.description,
-                allergenes: allergenes,
+                allergenes: Array.from(allergenes),
                 ingredients: ingredientsTotaux,
                 status: statutPlat,
                 ingredientsModifiables: ingredientsModifiables,
                 ingredientsNonModifiables: ingredientsNonModifiables
             };
             
-            // Ajouter les accompagnements
-            if (plat.accompagnements) {
+            // Ajouter les accompagnements si nécessaire
+            if (plat.aDesAccompagnements === "Oui") {
                 resultatPlat.accompagnements = {
                     compatibles: accompagnementsCompatibles,
                     incompatibles: accompagnementsIncompatibles
