@@ -13,49 +13,79 @@ document.addEventListener('DOMContentLoaded', function() {
         messagesContainer.scrollTop = messagesContainer.scrollHeight;
     }
 
-    // Fonction pour extraire les allergènes du message utilisateur
-    function extractAllergenes(text) {
-        // Mots clés qui peuvent indiquer des allergies
-        const allergieKeywords = [
-            'allergique', 'allergie', 'intolérant', 'intolérance',
-            'éviter', 'sans', 'pas de'
-        ];
-        
-        // Liste des allergènes courants
-        const commonAllergenes = [
-            'gluten', 'lait', 'lactose', 'arachide', 'soja', 'fruits à coque', 
-            'noix', 'noisette', 'amande', 'oeuf', 'œuf', 'poisson', 
-            'crustacé', 'fruits de mer', 'céleri', 'moutarde', 'sésame',
-            'sulfite', 'lupin', 'mollusque'
-        ];
-        
-        let allergenes = [];
-        
-        // Chercher des phrases comme "Je suis allergique au gluten"
-        for (const keyword of allergieKeywords) {
-            if (text.toLowerCase().includes(keyword)) {
-                for (const allergene of commonAllergenes) {
-                    // Recherche simple
-                    if (text.toLowerCase().includes(allergene)) {
-                        allergenes.push(allergene);
-                    }
-                }
+   // Fonction pour extraire les allergènes du message utilisateur
+function extractAllergenes(text) {
+    // Mots clés qui peuvent indiquer des allergies
+    const allergieKeywords = [
+        'allergique', 'allergie', 'intolérant', 'intolérance',
+        'éviter', 'sans', 'pas de'
+    ];
+    
+    // Liste des allergènes courants
+    const commonAllergenes = [
+        'gluten', 'lait', 'lactose', 'arachide', 'soja', 'fruits à coque', 
+        'noix', 'noisette', 'amande', 'oeuf', 'œuf', 'poisson', 
+        'crustacé', 'fruits de mer', 'céleri', 'moutarde', 'sésame',
+        'sulfite', 'lupin', 'mollusque'
+    ];
+    
+    // Liste des ingrédients à extraire de notre base de données
+    // Cela pourrait être chargé dynamiquement depuis le serveur si nécessaire
+    const commonIngredients = [
+        'charcuterie', 'salade', 'noix', 'comté', 'poulet', 'crêpe', 'pâte à tartiner',
+        'frites', 'légumes'
+    ];
+    
+    // Normaliser le texte pour la recherche
+    const normaliserTexte = (texte) => {
+        return texte.toLowerCase()
+            .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+            .replace(/[^a-z0-9\s]/g, "")
+            .trim();
+    };
+    
+    const textNormalise = normaliserTexte(text);
+    let termes = [];
+    
+    // Chercher des phrases comme "Je suis allergique au gluten"
+    let contientMotCleAllergie = allergieKeywords.some(keyword => 
+        textNormalise.includes(normaliserTexte(keyword))
+    );
+    
+    // Si on détecte un mot-clé d'allergie, on cherche les allergènes connus
+    if (contientMotCleAllergie) {
+        for (const allergene of commonAllergenes) {
+            const allergeneNormalise = normaliserTexte(allergene);
+            // Vérifier les formes singulier/pluriel
+            if (textNormalise.includes(allergeneNormalise) || 
+                textNormalise.includes(allergeneNormalise + 's') ||
+                (allergeneNormalise.endsWith('s') && textNormalise.includes(allergeneNormalise.slice(0, -1)))) {
+                termes.push(allergene);
             }
         }
-        
-        // Si aucun mot-clé n'est trouvé mais des allergènes sont mentionnés
-        if (allergenes.length === 0) {
-            for (const allergene of commonAllergenes) {
-                if (text.toLowerCase().includes(allergene)) {
-                    allergenes.push(allergene);
-                }
-            }
-        }
-        
-        // Supprimer les doublons
-        return [...new Set(allergenes)];
     }
-
+    
+    // Chercher aussi des ingrédients mentionnés
+    for (const ingredient of commonIngredients) {
+        const ingredientNormalise = normaliserTexte(ingredient);
+        if (textNormalise.includes(ingredientNormalise) ||
+            textNormalise.includes(ingredientNormalise + 's') ||
+            (ingredientNormalise.endsWith('s') && textNormalise.includes(ingredientNormalise.slice(0, -1)))) {
+            termes.push(ingredient);
+        }
+    }
+    
+    // Cas spécial pour "fruits à coque"
+    if (textNormalise.includes('fruit a coque') || 
+        textNormalise.includes('fruit à coque') ||
+        textNormalise.includes('fruits a coque') || 
+        textNormalise.includes('fruits à coque')) {
+        termes.push('fruits à coque');
+    }
+    
+    // Supprimer les doublons
+    return [...new Set(termes)];
+}
     // Fonction pour traiter une entrée utilisateur
     async function processUserInput(text) {
         // Ajouter le message de l'utilisateur à la conversation
