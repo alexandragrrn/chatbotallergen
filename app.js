@@ -76,7 +76,7 @@ app.post('/rechercher', (req, res) => {
     
     console.log("Recherche reçue:", recherche);
     
-    if (!recherche || !Array.isArray(recherche) || recherche.length === 0) {
+   if (!recherche || !Array.isArray(recherche) || recherche.length === 0) {
         return res.status(400).json({ erreur: "Critères de recherche invalides." });
     }
 
@@ -208,8 +208,8 @@ app.post('/rechercher', (req, res) => {
         res.json(resultatParCategorie);
         
     } catch (error) {
-        console.error("Erreur lors de la recherche:", error);
-        res.status(500).json({ erreur: "Erreur interne du serveur" });
+        console.error("Erreur détaillée lors de la recherche:", error.stack);
+        return res.status(500).json({ erreur: "Erreur interne du serveur: " + error.message });
     }
 });
 
