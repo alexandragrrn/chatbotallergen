@@ -21,6 +21,7 @@ const accompagnements = data.accompagnements;
 const optionsAccompagnement = data.optionsAccompagnement;
 
 // Fonction pour obtenir les ingrédients d'un plat
+// Fonction mise à jour pour obtenir les ingrédients d'un plat
 function getIngredientsPlat(platId) {
     const idsIngredients = compositions
         .filter(comp => comp.idPlat === platId)
@@ -29,11 +30,20 @@ function getIngredientsPlat(platId) {
     return idsIngredients.map(id => {
         const ingredient = ingredients.find(ing => ing.id === id);
         const composition = compositions.find(comp => comp.idPlat === platId && comp.idIngredient === id);
+        
+        // Ajouter des informations sur la substitution potentielle
+        let substitution = null;
+        if (composition.substitutionId) {
+            substitution = ingredients.find(ing => ing.id === composition.substitutionId);
+        }
+        
         return {
             ...ingredient,
-            modifiable: composition.modifiable
+            modifiable: composition.modifiable,
+            substitution: substitution
         };
     });
+}
 }
 
 // Fonction pour obtenir les accompagnements d'un plat
@@ -164,6 +174,25 @@ app.post('/rechercher', (req, res) => {
             } else {
                 status = 'compatible';
             }
+
+            // Vérifier les substitutions possibles
+let substitutionsPossibles = [];
+ingredientsPlat.forEach(ingredient => {
+    // Si l'ingrédient contient un allergène recherché et a une substitution
+    if (ingredient.substitution && recherche.some(terme => contientAllergene(ingredient.allergenes, terme))) {
+        const substitutionContientAllergene = recherche.some(terme => 
+            contientAllergene(ingredient.substitution.allergenes, terme)
+        );
+        
+        // Si la substitution ne contient pas les allergènes recherchés
+        if (!substitutionContientAllergene) {
+            substitutionsPossibles.push({
+                original: ingredient.nom,
+                substitution: ingredient.substitution.nom
+            });
+        }
+    }
+});
             
             // Si le plat n'est pas totalement incompatible, l'ajouter aux résultats
             if (status !== 'incompatible' || ingredientsModifiables.length > 0) {
@@ -198,6 +227,19 @@ app.post('/rechercher', (req, res) => {
                         incompatibles: accompagnementsIncompatibles
                     };
                 }
+
+                // Ajouter les accompagnements si le plat en a
+if (plat.aDesAccompagnements === "Oui") {
+    platResult.accompagnements = {
+        compatibles: accompagnementsCompatibles,
+        incompatibles: accompagnementsIncompatibles
+    };
+}
+
+// Ajouter les substitutions au résultat du plat si nécessaire
+if (substitutionsPossibles.length > 0) {
+    platResult.substitutionsPossibles = substitutionsPossibles;
+}
                 
                 // Ajouter le plat à sa catégorie
                 resultatParCategorie[plat.categorie].push(platResult);
