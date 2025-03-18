@@ -1,15 +1,14 @@
-{
-  "ingredients": [
-    {"id": 1, "nom": "Charcuterie", "allergenes": "sulfite"},
-    {"id": 2, "nom": "Salade", "allergenes": ""},
-    {"id": 3, "nom": "Noix", "allergenes": "fruits à coque"},
-    {"id": 4, "nom": "Comté", "allergenes": "lait"},
-    {"id": 5, "nom": "Poulet", "allergenes": ""},
-    {"id": 6, "nom": "Crêpe", "allergenes": "gluten, lait"},
-    {"id": 7, "nom": "Pâte à tartiner", "allergenes": "lait, fruits à coque"}
-    {"id": 8, "nom": "Pâte galette sarasin (traces gluten)", "allergenes": ""}
-  
-  ],
+"ingredients": [
+  {"id": 1, "nom": "Charcuterie", "allergenes": "sulfite"},
+  {"id": 2, "nom": "Salade", "allergenes": ""},
+  {"id": 3, "nom": "Noix", "allergenes": "fruits à coque"},
+  {"id": 4, "nom": "Comté", "allergenes": "lait"},
+  {"id": 5, "nom": "Poulet", "allergenes": ""},
+  {"id": 6, "nom": "Crêpe", "allergenes": "gluten, lait"},
+  {"id": 7, "nom": "Pâte à tartiner", "allergenes": "lait, fruits à coque"},
+  {"id": 8, "nom": "Pâte galette sarasin (traces gluten)", "allergenes": ""}
+],
+
   "plats": [
     {"id": 1, "nom": "Jura4ever", "description": "Notre best seller !", "categorie": "Planche à partager", "aDesAccompagnements": "Non"},
     {"id": 2, "nom": "Salade jurassienne", "description": "Une salade typique du Jura", "categorie": "Entrée", "aDesAccompagnements": "Non"},
@@ -25,7 +24,7 @@
     {"idPlat": 2, "idIngredient": 3, "modifiable": "Oui"},
     {"idPlat": 2, "idIngredient": 4, "modifiable": "Non"},
     {"idPlat": 3, "idIngredient": 5, "modifiable": "Non"},
-    {"idPlat": 4, "idIngredient": 6, "modifiable": "Oui" "substitutionId": 8},
+    {"idPlat": 4, "idIngredient": 6, "modifiable": "Oui", "substitutionId": 8},
     {"idPlat": 4, "idIngredient": 7, "modifiable": "Non"}
   ],
   "accompagnements": [
