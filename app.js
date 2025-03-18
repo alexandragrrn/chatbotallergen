@@ -21,8 +21,6 @@ const accompagnements = data.accompagnements;
 const optionsAccompagnement = data.optionsAccompagnement;
 
 // Fonction pour obtenir les ingrédients d'un plat
-// Fonction mise à jour pour obtenir les ingrédients d'un plat
-// Dans la fonction getIngredientsPlat()
 function getIngredientsPlat(platId) {
     const idsIngredients = compositions
         .filter(comp => comp.idPlat === platId)
@@ -86,7 +84,7 @@ app.post('/rechercher', (req, res) => {
     
     console.log("Recherche reçue:", recherche);
     
-   if (!recherche || !Array.isArray(recherche) || recherche.length === 0) {
+    if (!recherche || !Array.isArray(recherche) || recherche.length === 0) {
         return res.status(400).json({ erreur: "Critères de recherche invalides." });
     }
 
@@ -101,7 +99,7 @@ app.post('/rechercher', (req, res) => {
             // Récupérer les allergènes du plat (à partir des ingrédients)
             const allergenes = new Set();
             ingredientsPlat.forEach(ing => {
-                if (ing.allergenes) {
+                if (ing && ing.allergenes) {
                     ing.allergenes.split(',').forEach(all => allergenes.add(all.trim()));
                 }
             });
@@ -112,6 +110,9 @@ app.post('/rechercher', (req, res) => {
             
             // Vérifier chaque ingrédient par rapport aux critères de recherche
             ingredientsPlat.forEach(ingredient => {
+                // Vérifier si l'ingrédient est défini et contient des propriétés requises
+                if (!ingredient) return;
+                
                 // Vérifier si l'ingrédient contient un des allergènes recherchés
                 const contientUnAllergeneRecherche = recherche.some(terme => 
                     contientAllergene(ingredient.allergenes, terme)
@@ -175,72 +176,80 @@ app.post('/rechercher', (req, res) => {
                 status = 'compatible';
             }
 
-// Vérifier les substitutions possibles
-let substitutionsPossibles = [];
-ingredientsPlat.forEach(ingredient => {
-    // Vérifications plus robustes
-    if (ingredient && ingredient.allergenes && ingredient.substitution) {
-        // Si l'ingrédient contient un allergène recherché et a une substitution
-        if (recherche.some(terme => contientAllergene(ingredient.allergenes, terme))) {
-            // Vérifier que substitution a une propriété allergenes (avec valeur par défaut)
-            const substitutionAllergenes = ingredient.substitution.allergenes || "";
-            const substitutionContientAllergene = recherche.some(terme => 
-                contientAllergene(substitutionAllergenes, terme)
-            );
-            
-            // Si la substitution ne contient pas les allergènes recherchés
-            if (!substitutionContientAllergene) {
-                substitutionsPossibles.push({
-                    original: ingredient.nom,
-                    substitution: ingredient.substitution.nom
-                });
+            // Vérifier les substitutions possibles
+            let substitutionsPossibles = [];
+            ingredientsPlat.forEach(ingredient => {
+                // Vérifications plus robustes
+                if (ingredient && ingredient.allergenes && ingredient.substitution) {
+                    // Si l'ingrédient contient un allergène recherché et a une substitution
+                    if (recherche.some(terme => contientAllergene(ingredient.allergenes, terme))) {
+                        // Vérifier que substitution a une propriété allergenes (avec valeur par défaut)
+                        const substitutionAllergenes = ingredient.substitution.allergenes || "";
+                        const substitutionContientAllergene = recherche.some(terme => 
+                            contientAllergene(substitutionAllergenes, terme)
+                        );
+                        
+                        // Si la substitution ne contient pas les allergènes recherchés
+                        if (!substitutionContientAllergene) {
+                            substitutionsPossibles.push({
+                                original: ingredient.nom,
+                                substitution: ingredient.substitution.nom
+                            });
+                        }
+                    }
+                }
+            });
+
+            // Si le plat n'est pas totalement incompatible, l'ajouter aux résultats
+            if (status !== 'incompatible' || ingredientsModifiables.length > 0) {
+                // Créer la structure de résultat pour la catégorie si elle n'existe pas encore
+                if (!resultatParCategorie[plat.categorie]) {
+                    resultatParCategorie[plat.categorie] = [];
+                }
+                
+                // Créer l'objet plat à renvoyer
+                const platResult = {
+                    id: plat.id,
+                    nom: plat.nom,
+                    description: plat.description,
+                    status: status,
+                    ingredients: ingredientsPlat.filter(ing => ing).map(ing => ing.nom),
+                    allergenes: Array.from(allergenes)
+                };
+                
+                // Ajouter les ingrédients modifiables/non-modifiables si nécessaire
+                if (ingredientsModifiables.length > 0) {
+                    platResult.ingredientsModifiables = ingredientsModifiables;
+                }
+                
+                if (ingredientsNonModifiables.length > 0) {
+                    platResult.ingredientsNonModifiables = ingredientsNonModifiables;
+                }
+                
+                // Ajouter les accompagnements si le plat en a
+                if (plat.aDesAccompagnements === "Oui") {
+                    platResult.accompagnements = {
+                        compatibles: accompagnementsCompatibles,
+                        incompatibles: accompagnementsIncompatibles
+                    };
+                }
+
+                // Ajouter les substitutions au résultat du plat si nécessaire
+                if (substitutionsPossibles.length > 0) {
+                    platResult.substitutionsPossibles = substitutionsPossibles;
+                }
+                
+                // Ajouter le plat à sa catégorie
+                resultatParCategorie[plat.categorie].push(platResult);
             }
-        }
+        });
+        
+        res.json(resultatParCategorie);
+    } catch (error) {
+        console.error('Erreur lors de la recherche:', error);
+        res.status(500).json({ erreur: "Une erreur est survenue lors de la recherche." });
     }
 });
-
-// Si le plat n'est pas totalement incompatible, l'ajouter aux résultats
-if (status !== 'incompatible' || ingredientsModifiables.length > 0) {
-    // Créer la structure de résultat pour la catégorie si elle n'existe pas encore
-    if (!resultatParCategorie[plat.categorie]) {
-        resultatParCategorie[plat.categorie] = [];
-    }
-    
-    // Créer l'objet plat à renvoyer
-    const platResult = {
-        id: plat.id,
-        nom: plat.nom,
-        description: plat.description,
-        status: status,
-        ingredients: ingredientsPlat.map(ing => ing.nom),
-        allergenes: Array.from(allergenes)
-    };
-    
-    // Ajouter les ingrédients modifiables/non-modifiables si nécessaire
-    if (ingredientsModifiables.length > 0) {
-        platResult.ingredientsModifiables = ingredientsModifiables;
-    }
-    
-    if (ingredientsNonModifiables.length > 0) {
-        platResult.ingredientsNonModifiables = ingredientsNonModifiables;
-    }
-    
-    // Ajouter les accompagnements si le plat en a
-    if (plat.aDesAccompagnements === "Oui") {
-        platResult.accompagnements = {
-            compatibles: accompagnementsCompatibles,
-            incompatibles: accompagnementsIncompatibles
-        };
-    }
-
-    // Ajouter les substitutions au résultat du plat si nécessaire
-    if (substitutionsPossibles.length > 0) {
-        platResult.substitutionsPossibles = substitutionsPossibles;
-    }
-    
-    // Ajouter le plat à sa catégorie
-    resultatParCategorie[plat.categorie].push(platResult);
-}
 
 // Démarrer le serveur
 app.listen(PORT, () => {
