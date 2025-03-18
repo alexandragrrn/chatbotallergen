@@ -32,15 +32,15 @@ function getIngredientsPlat(platId) {
         const ingredient = ingredients.find(ing => ing.id === id);
         const composition = compositions.find(comp => comp.idPlat === platId && comp.idIngredient === id);
         
-        // Ajouter des informations sur la substitution potentielle
+        // Vérification plus robuste pour la substitution
         let substitution = null;
-        if (composition && composition.substitutionId) {  // Vérifier que composition et substitutionId existent
+        if (composition && composition.substitutionId) {
             substitution = ingredients.find(ing => ing.id === composition.substitutionId);
         }
         
         return {
             ...ingredient,
-            modifiable: composition ? composition.modifiable : "Non",  // Valeur par défaut si composition est undefined
+            modifiable: composition ? composition.modifiable : "Non",
             substitution: substitution
         };
     });
@@ -178,20 +178,23 @@ app.post('/rechercher', (req, res) => {
 // Vérifier les substitutions possibles
 let substitutionsPossibles = [];
 ingredientsPlat.forEach(ingredient => {
-    // Si l'ingrédient contient un allergène recherché et a une substitution
-    if (ingredient.substitution && recherche.some(terme => contientAllergene(ingredient.allergenes, terme))) {
-        // Vérifier que substitution a une propriété allergenes
-        const substitutionAllergenes = ingredient.substitution.allergenes || "";
-        const substitutionContientAllergene = recherche.some(terme => 
-            contientAllergene(substitutionAllergenes, terme)
-        );
-        
-        // Si la substitution ne contient pas les allergènes recherchés
-        if (!substitutionContientAllergene) {
-            substitutionsPossibles.push({
-                original: ingredient.nom,
-                substitution: ingredient.substitution.nom
-            });
+    // Vérifications plus robustes
+    if (ingredient && ingredient.allergenes && ingredient.substitution) {
+        // Si l'ingrédient contient un allergène recherché et a une substitution
+        if (recherche.some(terme => contientAllergene(ingredient.allergenes, terme))) {
+            // Vérifier que substitution a une propriété allergenes (avec valeur par défaut)
+            const substitutionAllergenes = ingredient.substitution.allergenes || "";
+            const substitutionContientAllergene = recherche.some(terme => 
+                contientAllergene(substitutionAllergenes, terme)
+            );
+            
+            // Si la substitution ne contient pas les allergènes recherchés
+            if (!substitutionContientAllergene) {
+                substitutionsPossibles.push({
+                    original: ingredient.nom,
+                    substitution: ingredient.substitution.nom
+                });
+            }
         }
     }
 });
