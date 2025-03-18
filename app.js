@@ -43,7 +43,7 @@ function getIngredientsPlat(platId) {
             substitution: substitution
         };
     });
-}
+
 }
 
 // Fonction pour obtenir les accompagnements d'un plat
