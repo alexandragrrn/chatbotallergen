@@ -175,89 +175,69 @@ app.post('/rechercher', (req, res) => {
                 status = 'compatible';
             }
 
-            // Vérifier les substitutions possibles
+// Vérifier les substitutions possibles
 let substitutionsPossibles = [];
 ingredientsPlat.forEach(ingredient => {
-  
     // Si l'ingrédient contient un allergène recherché et a une substitution
-if (ingredient.substitution && recherche.some(terme => contientAllergene(ingredient.allergenes, terme))) {
-    // Vérifier que substitution a une propriété allergenes
-    const substitutionAllergenes = ingredient.substitution.allergenes || "";
-    const substitutionContientAllergene = recherche.some(terme => 
-        contientAllergene(substitutionAllergenes, terme)
-    );
+    if (ingredient.substitution && recherche.some(terme => contientAllergene(ingredient.allergenes, terme))) {
+        // Vérifier que substitution a une propriété allergenes
+        const substitutionAllergenes = ingredient.substitution.allergenes || "";
+        const substitutionContientAllergene = recherche.some(terme => 
+            contientAllergene(substitutionAllergenes, terme)
+        );
+        
+        // Si la substitution ne contient pas les allergènes recherchés
+        if (!substitutionContientAllergene) {
+            substitutionsPossibles.push({
+                original: ingredient.nom,
+                substitution: ingredient.substitution.nom
+            });
+        }
+    }
+});
+
+// Si le plat n'est pas totalement incompatible, l'ajouter aux résultats
+if (status !== 'incompatible' || ingredientsModifiables.length > 0) {
+    // Créer la structure de résultat pour la catégorie si elle n'existe pas encore
+    if (!resultatParCategorie[plat.categorie]) {
+        resultatParCategorie[plat.categorie] = [];
+    }
     
-    // Si la substitution ne contient pas les allergènes recherchés
-    if (!substitutionContientAllergene) {
-        substitutionsPossibles.push({
-            original: ingredient.nom,
-            substitution: ingredient.substitution.nom
-        });
-    }
-}
-            
-            // Si le plat n'est pas totalement incompatible, l'ajouter aux résultats
-            if (status !== 'incompatible' || ingredientsModifiables.length > 0) {
-                // Créer la structure de résultat pour la catégorie si elle n'existe pas encore
-                if (!resultatParCategorie[plat.categorie]) {
-                    resultatParCategorie[plat.categorie] = [];
-                }
-                
-                // Créer l'objet plat à renvoyer
-                const platResult = {
-                    id: plat.id,
-                    nom: plat.nom,
-                    description: plat.description,
-                    status: status,
-                    ingredients: ingredientsPlat.map(ing => ing.nom),
-                    allergenes: Array.from(allergenes)
-                };
-                
-                // Ajouter les ingrédients modifiables/non-modifiables si nécessaire
-                if (ingredientsModifiables.length > 0) {
-                    platResult.ingredientsModifiables = ingredientsModifiables;
-                }
-                
-                if (ingredientsNonModifiables.length > 0) {
-                    platResult.ingredientsNonModifiables = ingredientsNonModifiables;
-                }
-                
-                // Ajouter les accompagnements si le plat en a
-if (plat.aDesAccompagnements === "Oui") {
-    platResult.accompagnements = {
-        compatibles: accompagnementsCompatibles,
-        incompatibles: accompagnementsIncompatibles
+    // Créer l'objet plat à renvoyer
+    const platResult = {
+        id: plat.id,
+        nom: plat.nom,
+        description: plat.description,
+        status: status,
+        ingredients: ingredientsPlat.map(ing => ing.nom),
+        allergenes: Array.from(allergenes)
     };
-}
-
-// Ajouter les substitutions au résultat du plat si nécessaire
-if (substitutionsPossibles.length > 0) {
-    platResult.substitutionsPossibles = substitutionsPossibles;
-}
-
-// Ajouter les substitutions au résultat du plat si nécessaire
-if (substitutionsPossibles.length > 0) {
-    platResult.substitutionsPossibles = substitutionsPossibles;
-}
-                
-                // Ajouter le plat à sa catégorie
-                resultatParCategorie[plat.categorie].push(platResult);
-            }
-        });
-        
-        // Renvoyer les résultats
-        res.json(resultatParCategorie);
-        
-    } catch (error) {
-        console.error("Erreur détaillée lors de la recherche:", error.stack);
-        return res.status(500).json({ erreur: "Erreur interne du serveur: " + error.message });
+    
+    // Ajouter les ingrédients modifiables/non-modifiables si nécessaire
+    if (ingredientsModifiables.length > 0) {
+        platResult.ingredientsModifiables = ingredientsModifiables;
     }
-});
+    
+    if (ingredientsNonModifiables.length > 0) {
+        platResult.ingredientsNonModifiables = ingredientsNonModifiables;
+    }
+    
+    // Ajouter les accompagnements si le plat en a
+    if (plat.aDesAccompagnements === "Oui") {
+        platResult.accompagnements = {
+            compatibles: accompagnementsCompatibles,
+            incompatibles: accompagnementsIncompatibles
+        };
+    }
 
-// Route pour l'interface de chat
-app.get('/chat.html', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'chat.html'));
-});
+    // Ajouter les substitutions au résultat du plat si nécessaire
+    if (substitutionsPossibles.length > 0) {
+        platResult.substitutionsPossibles = substitutionsPossibles;
+    }
+    
+    // Ajouter le plat à sa catégorie
+    resultatParCategorie[plat.categorie].push(platResult);
+}
 
 // Démarrer le serveur
 app.listen(PORT, () => {
