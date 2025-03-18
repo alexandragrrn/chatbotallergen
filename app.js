@@ -166,15 +166,40 @@ app.post('/rechercher', (req, res) => {
                 });
             }
             
-            // Déterminer le statut global du plat
-            let status;
-            if (ingredientsNonModifiables.length > 0) {
-                status = 'incompatible';
-            } else if (ingredientsModifiables.length > 0) {
-                status = 'modifiable';
-            } else {
-                status = 'compatible';
+           // Déterminer le statut global du plat
+let status;
+let ingredientsNonModifiablesApresSubstitution = [...ingredientsNonModifiables];
+
+// Vérifier les substitutions possibles pour les ingrédients non modifiables
+if (ingredientsNonModifiables.length > 0) {
+    ingredientsPlat.forEach(ingredient => {
+        if (ingredient && ingredient.allergenes && ingredient.substitution) {
+            // Si l'ingrédient est dans la liste des non modifiables et a une substitution
+            if (ingredientsNonModifiables.includes(ingredient.nom)) {
+                // Vérifier que la substitution n'a pas les allergènes recherchés
+                const substitutionAllergenes = ingredient.substitution.allergenes || "";
+                const substitutionContientAllergene = recherche.some(terme => 
+                    contientAllergene(substitutionAllergenes, terme)
+                );
+                
+                // Si la substitution est compatible, retirer l'ingrédient de la liste des non modifiables
+                if (!substitutionContientAllergene) {
+                    ingredientsNonModifiablesApresSubstitution = 
+                        ingredientsNonModifiablesApresSubstitution.filter(nom => nom !== ingredient.nom);
+                }
             }
+        }
+    });
+}
+
+if (ingredientsNonModifiablesApresSubstitution.length > 0) {
+    status = 'incompatible';
+} else if (ingredientsModifiables.length > 0 || ingredientsNonModifiables.length > 0) {
+    // Si on avait des ingrédients non modifiables mais qu'ils ont tous une substitution
+    status = 'modifiable';
+} else {
+    status = 'compatible';
+}
 
             // Vérifier les substitutions possibles
             let substitutionsPossibles = [];
