@@ -15,7 +15,7 @@
     {"id": 4, "nom": "Crêpe pâte à tartiner", "description": "Délicieuse crêpe chocolatée", "categorie": "Dessert", "aDesAccompagnements": "Non"}
   ],
   "compositions": [
-   {"idPlat": 1, "idIngredient": 1, "modifiable": "Non", "substitutionId": 2},
+    {"idPlat": 1, "idIngredient": 1, "modifiable": "Non", "substitutionId": 2},
     {"idPlat": 1, "idIngredient": 2, "modifiable": "Oui"},
     {"idPlat": 1, "idIngredient": 3, "modifiable": "Oui", "substitutionId": 5},
     {"idPlat": 1, "idIngredient": 4, "modifiable": "Non"},
@@ -34,4 +34,4 @@
     {"idPlat": 3, "idAccompagnement": 1},
     {"idPlat": 3, "idAccompagnement": 2}
   ]
-}  
+}
